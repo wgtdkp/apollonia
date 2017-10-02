@@ -1,2 +1,2 @@
-# apollonia
-Plain 2D physics engine
+# Apollonia
+A simplicity-first 2D physics engine.
