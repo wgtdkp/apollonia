@@ -2,7 +2,7 @@ OBJS_DIR = build/
 TARGET = apollonia
 CXX = clang++
 
-SRCS = arbiter.cc body.cc collision.cc joint.cc main.cc world.cc
+SRCS = body.cc collision.cc joint.cc main.cc world.cc
 
 CXXFLAGS = -std=c++11 -g -Wall -Wfatal-errors
 LDFLAGS = -lGLU -lglut -lGL
