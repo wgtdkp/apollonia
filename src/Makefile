@@ -2,7 +2,7 @@ OBJS_DIR = build/
 TARGET = apollonia
 CXX = clang++
 
-SRCS = body.cc collision.cc joint.cc main.cc world.cc
+SRCS = base/math.cc body.cc collision.cc joint.cc main.cc world.cc
 
 CXXFLAGS = -std=c++11 -g -Wall -Wfatal-errors
 LDFLAGS = -lGLU -lglut -lGL
@@ -11,7 +11,7 @@ OBJS = $(addprefix $(OBJS_DIR), $(SRCS:.cc=.o))
 default: all
 
 all:
-	@mkdir -p $(OBJS_DIR)
+	@mkdir -p $(OBJS_DIR)/base/
 	@make $(TARGET)
 
 $(TARGET): $(OBJS)

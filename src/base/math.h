@@ -97,4 +97,9 @@ static inline Mat22 operator*(Float a, const Mat22& b) {
   return b * a;
 }
 
+static inline Vec2 operator*(const Vec2& a, const Mat22& b) {
+  return {a[0] * b[0][0] + a[1] * b[1][0],
+          a[0] * b[0][1] + a[1] * b[1][1]};
+}
+
 }
