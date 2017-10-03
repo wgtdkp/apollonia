@@ -38,18 +38,4 @@ Float Body::FindMinSeparatingAxis(size_t& idx, const Body& other) const {
   return separation;
 }
 
-std::array<Contact, 2> Body::ContactWith(const Body& other) const {
-  for (size_t i = 0; i < this->Count(); ++i) {
-    for (size_t j = 0; j < other.Count(); ++j) {
-      auto va1 = this->LocalToWorld((*this)[i]);
-      auto va2 = this->LocalToWorld((*this)[(i+1)%this->Count()]);
-      auto ea = va2 - va1;
-      auto vb1 = other.LocalToWorld(other[j]);
-      auto vb2 = other.LocalToWorld(other[(j+1)%other.Count()]);
-      auto eb = vb2 - vb1;
-      
-    }
-  }
-}
-
 }

@@ -41,7 +41,6 @@ struct Body {
   }
   // Project the body to a line
   std::pair<Float, Float> ProjectTo(Vec2 line) const;
-  std::array<Contact, 2> ContactWith(const Body& other) const;
   Float FindMinSeparatingAxis(size_t& idx, const Body& other) const;
 
  private:

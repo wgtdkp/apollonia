@@ -17,8 +17,6 @@ struct Contact {
   Float pnb {0};
   Float mass_normal, mass_tangent;
   Float bias;
-
-  Contact(const Body& a, size_t ia, const Body& b, size_t ib);
 };
 
 struct Arbiter {
