@@ -6,6 +6,7 @@
 namespace apollonia {
 
 class World;
+struct Contact;
 
 struct Body {
   friend class World;
@@ -29,18 +30,19 @@ struct Body {
   }
   // Get local vertices with rotation
   Vec2 operator[](size_t idx) const {
-    return vertices_[idx] * rotation;
+    return rotation * vertices_[idx];
   }
   Vec2 EdgeAt(size_t idx) const {
-    return (vertices_[idx] - vertices_[(idx+1)%Count()]) * rotation;
+    return (*this)[(idx+1)%Count()] - (*this)[idx];
   }
   // Convert local point to world
   Vec2 LocalToWorld(const Vec2& local_point) const {
     return position + local_point;
   }
   // Project the body to a line
-  std::pair<Vec2, Vec2> Project(const Vec2& line);
-  Float FindMinSeparatingAxis(size_t& idx, const Body& other);
+  std::pair<Float, Float> ProjectTo(Vec2 line) const;
+  std::array<Contact, 2> ContactWith(const Body& other) const;
+  Float FindMinSeparatingAxis(size_t& idx, const Body& other) const;
 
  private:
   Body(Float mass, const Vec2& position, const std::vector<Vec2>& vertices)

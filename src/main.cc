@@ -9,7 +9,7 @@
 using namespace apollonia;
 using namespace std::chrono;
 static time_point<high_resolution_clock> last_clock = high_resolution_clock::now();
-static World world({0, -9.8});
+static World world({0.0f, 0.0f});
 
 static void DrawText(int x, int y, const char* format, ...) {
 	glMatrixMode(GL_PROJECTION);
@@ -101,6 +101,7 @@ static void Reshape(int width, int height) {
 
 static void test() {
   auto body = World::NewBody(20, {0, 10}, 2, 2);
+  body->angularVelocity = 1;
   world.Add(body);
 }
 

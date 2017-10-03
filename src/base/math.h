@@ -47,6 +47,10 @@ static inline Vec2 operator*(const Vec2& a, const Mat22& b);
 static inline void operator*=(Vec2& a, const Mat22& b);
 
 struct Vec2 {
+  Float x;
+  Float y;
+
+  Vec2(Float x, Float y) : x(x), y(y) {}
   Float& operator[](size_t idx) {
     assert(idx < 2);
     return idx == 0 ? x : y;
@@ -57,12 +61,13 @@ struct Vec2 {
   Float Magnitude() const {
     return sqrt(x * x + y * y);
   }
+  // Return the normal that 'v x n' points into paper
+  Vec2 Normal() const {
+    return Vec2(y, -x) / Magnitude();
+  }
   Vec2 Normalized() const {
     return *this / Magnitude();
   }
-
-  Float x;
-  Float y;
 };
 
 struct Mat22 {
@@ -197,6 +202,11 @@ static inline void operator*=(Mat22& a, Float b) {
 static inline Vec2 operator*(const Vec2& a, const Mat22& b) {
   return {a[0] * b[0][0] + a[1] * b[1][0],
           a[0] * b[0][1] + a[1] * b[1][1]};
+}
+
+static inline Vec2 operator*(const Mat22& a, const Vec2& b) {
+  return {a[0][0] * b[0] + a[0][1] * b[1],
+          a[1][0] * b[0] + a[1][1] * b[1]};
 }
 
 static inline void operator*=(Vec2& a, const Mat22& b) {
