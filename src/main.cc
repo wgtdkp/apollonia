@@ -1,4 +1,3 @@
-#include "arbiter.h"
 #include "body.h"
 #include "collision.h"
 #include "joint.h"
