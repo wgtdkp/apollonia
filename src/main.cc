@@ -2,14 +2,14 @@
 #include "collision.h"
 #include "joint.h"
 #include "world.h"
-
 #include <GL/glut.h>
 #include <GL/glu.h>
-
 #include <chrono>
 
+using namespace apollonia;
 using namespace std::chrono;
-static time_point<high_resolution_clock> last_clock;
+static time_point<high_resolution_clock> last_clock = high_resolution_clock::now();
+static World world({0, -9.8});
 
 static void DrawText(int x, int y, const char* format, ...) {
 	glMatrixMode(GL_PROJECTION);
@@ -51,6 +51,17 @@ static void DrawAxis() {
   glEnd();
 }
 
+static void DrawBody(const Body& body) {
+	glColor3f(0.8f, 0.8f, 0.0f);
+
+  glBegin(GL_LINE_LOOP);
+  for (size_t i = 0; i < body.Count(); ++i) {
+    auto point = body.LocalToWorld(body[i]);
+	  glVertex2f(point.x, point.y);
+  }
+	glEnd();
+}
+
 static void ApolloniaRun() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
@@ -58,12 +69,18 @@ static void ApolloniaRun() {
   glTranslatef(0.0f, -5.0f, -25.0f);
   // Step:
   auto now = high_resolution_clock::now();
-  auto dt = duration_cast<duration<double, std::milli>>(now - last_clock).count();
+  auto dt = duration_cast<duration<double>>(now - last_clock).count();
   last_clock = now;
   
   int h = glutGet(GLUT_WINDOW_HEIGHT);
-  DrawText(5, h - 20, "dt: %.2f ms", dt);
+  DrawText(5, h - 20, "dt: %.2f ms", dt * 1000);
   DrawAxis();
+
+  world.Step(dt);
+  for (auto body : world.bodies()) {
+    DrawBody(*body);
+  }
+
   glutSwapBuffers();
 }
 
@@ -82,11 +99,18 @@ static void Reshape(int width, int height) {
   gluPerspective(45.0, width/(float)height, 0.1, 100.0);
 }
 
+static void test() {
+  auto body = World::NewBody(20, {0, 10}, 2, 2);
+  world.Add(body);
+}
+
 int main(int argc, char* argv[]) {
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
   glutInitWindowSize(800, 800);
   glutCreateWindow("Apollonia");
+
+  test();
 
   glutReshapeFunc(Reshape);
   glutDisplayFunc(ApolloniaRun);
@@ -94,5 +118,6 @@ int main(int argc, char* argv[]) {
   glutMouseFunc(Mouse);
   glutIdleFunc(ApolloniaRun);
   glutMainLoop();
+
   return 0;
 }

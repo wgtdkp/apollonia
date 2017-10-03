@@ -2,4 +2,8 @@
 
 namespace apollonia {
 
+struct Joint {
+
+};
+
 }

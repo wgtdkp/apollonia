@@ -2,10 +2,49 @@
 
 #include <array>
 #include <cassert>
+#include <cmath>
+#include <limits>
 
 namespace apollonia {
 
 using Float = float;
+using std::cos;
+using std::sin;
+using std::acos;
+using std::asin;
+static const Float kPi = acos(-1);
+static const Float kInf = std::numeric_limits<Float>::infinity();
+
+struct Vec2;
+struct Mat22;
+
+static inline Vec2 operator+(const Vec2& a, const Vec2& b);
+static inline void operator+=(Vec2& a, const Vec2& b);
+static inline Vec2 operator-(const Vec2& a, const Vec2& b);
+static inline void operator-=(Vec2& a, const Vec2& b);
+static inline Vec2 operator*(const Vec2& a, Float b);
+static inline Vec2 operator*(Float a, const Vec2& b);
+static inline void operator*=(Vec2& a, Float b);
+static inline Vec2 operator/(const Vec2& a, Float b);
+static inline void operator/=(Vec2& a, Float b);
+static inline Float Dot(const Vec2& a, const Vec2& b);
+static inline Float Cross(const Vec2& a, const Vec2& b);
+
+static inline Mat22 operator+(const Mat22& a, const Mat22& b);
+static inline void operator+=(Mat22& a, const Mat22& b);
+static inline Mat22 operator+(const Mat22& a, Float b);
+static inline Mat22 operator+(Float b, const Mat22& a);
+static inline void operator+=(Mat22& a, Float b);
+static inline Mat22 operator-(const Mat22& a, const Mat22& b);
+static inline void operator-=(Mat22& a, const Mat22& b);
+static inline Mat22 operator-(const Mat22& a, Float b);
+static inline Mat22 operator-(Float b, const Mat22& a);
+static inline void operator-=(Mat22& a, Float b);
+static inline Mat22 operator*(const Mat22& a, Float b);
+static inline Mat22 operator*(Float a, const Mat22& b);
+static inline void operator*=(Mat22& a, Float b);
+static inline Vec2 operator*(const Vec2& a, const Mat22& b);
+static inline void operator*=(Vec2& a, const Mat22& b);
 
 struct Vec2 {
   Float& operator[](size_t idx) {
@@ -15,24 +54,31 @@ struct Vec2 {
   const Float& operator[](size_t idx) const {
     return (*const_cast<Vec2*>(this))[idx];
   }
+  Float Magnitude() const {
+    return sqrt(x * x + y * y);
+  }
+  Vec2 Normalized() const {
+    return *this / Magnitude();
+  }
 
   Float x;
   Float y;
 };
 
-class Mat22 {
+struct Mat22 {
  public:
   static const Mat22 I;
   Mat22(const std::array<Vec2, 2>& mat) : mat_(mat) {}
   Mat22(Float a, Float b, Float c, Float d)
     : mat_{{ {a, b}, {c, d} }} {}
+  Mat22(Float theta)
+    : mat_{{ {cos(theta), -sin(theta)}, {sin(theta), cos(theta)} }} {}
   Float Det() const {
     return 1 / (mat_[0][0] * mat_[1][1] - mat_[0][1] * mat_[1][0]);
   }
   Mat22 Inv() const {
     auto det = Det();
-    return {mat_[1][1] / det, -mat_[0][1] / det,
-            -mat_[1][0] / det, mat_[0][0] / det};
+    return (1 / det) * (*this);
   }
   Mat22 Transpose() const {
     auto ans = mat_;
@@ -50,12 +96,21 @@ class Mat22 {
   std::array<Vec2, 2> mat_;
 };
 
+
 static inline Vec2 operator+(const Vec2& a, const Vec2& b) {
   return {a.x + b.x, a.y + b.y};
 }
 
+static inline void operator+=(Vec2& a, const Vec2& b) {
+  a = a + b;
+}
+
 static inline Vec2 operator-(const Vec2& a, const Vec2& b) {
   return {a.x - b.x, a.y - b.y};
+}
+
+static inline void operator-=(Vec2& a, const Vec2& b) {
+  a = a - b;
 }
 
 static inline Vec2 operator*(const Vec2& a, Float b) {
@@ -66,8 +121,16 @@ static inline Vec2 operator*(Float a, const Vec2& b) {
   return b * a;
 }
 
+static inline void operator*=(Vec2& a, Float b) {
+  a = a * b;
+}
+
 static inline Vec2 operator/(const Vec2& a, Float b) {
   return {a.x / b, a.y / b};
+}
+
+static inline void operator/=(Vec2& a, Float b) {
+  a = a / b;
 }
 
 static inline Float Dot(const Vec2& a, const Vec2& b) {
@@ -83,9 +146,39 @@ static inline Mat22 operator+(const Mat22& a, const Mat22& b) {
           a[1].x + b[1].x, a[1].y + b[1].y};
 }
 
+static inline void operator+=(Mat22& a, const Mat22& b) {
+  a = a + b;
+}
+
+static inline Mat22 operator+(const Mat22& a, Float b) {
+  return a + b * Mat22::I;
+}
+static inline Mat22 operator+(Float a, const Mat22& b) {
+  return b + a;
+}
+static inline void operator+=(Mat22& a, Float b) {
+  a = a + b;
+}
+
 static inline Mat22 operator-(const Mat22& a, const Mat22& b) {
   return {a[0].x - b[0].x, a[0].y - b[0].y,
           a[1].x - b[1].x, a[1].y - b[1].y};
+}
+
+static inline void operator-=(Mat22& a, const Mat22& b) {
+  a = a - b;
+}
+
+static inline Mat22 operator-(const Mat22& a, Float b) {
+  return a - b * Mat22::I;
+}
+
+static inline Mat22 operator-(Float a, const Mat22& b) {
+  return a * Mat22::I - b;
+}
+
+static inline void operator-=(Mat22& a, Float b) {
+  a = a - b;
 }
 
 static inline Mat22 operator*(const Mat22& a, Float b) {
@@ -97,9 +190,28 @@ static inline Mat22 operator*(Float a, const Mat22& b) {
   return b * a;
 }
 
+static inline void operator*=(Mat22& a, Float b) {
+  a = a * b;
+}
+
 static inline Vec2 operator*(const Vec2& a, const Mat22& b) {
   return {a[0] * b[0][0] + a[1] * b[1][0],
           a[0] * b[0][1] + a[1] * b[1][1]};
+}
+
+static inline void operator*=(Vec2& a, const Mat22& b) {
+  a = a * b;
+}
+
+static inline Mat22 operator*(const Mat22& a, const Mat22& b) {
+  return {a[0][0] * b[0][0] + a[0][1] * b[1][0],
+          a[0][0] * b[0][1] + a[0][1] * b[1][1],
+          a[1][0] * b[0][0] + a[1][1] * b[1][0],
+          a[1][0] * b[0][1] + a[1][1] * b[1][1]};
+}
+
+static inline void operator*=(Mat22& a, const Mat22& b) {
+  a = a * b;
 }
 
 }
