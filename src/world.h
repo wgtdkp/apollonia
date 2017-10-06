@@ -1,7 +1,9 @@
 #pragma once
 
+#include "collision.h"
 #include "base/math.h"
 #include <vector>
+#include <map>
 
 namespace apollonia {
 
@@ -16,6 +18,8 @@ class World {
                        const std::vector<Vec2>& vertices);
   static Body* NewBody(Float mass, const Vec2& position,
                        Float width, Float height);
+  static Arbiter* NewArbiter(Body* a, Body* b,
+                             const Arbiter::ContactList& contacts);
   Joint* NewJoint();
   void Add(Body* body) {
     bodies_.push_back(body);
@@ -28,13 +32,16 @@ class World {
   const std::vector<Joint*>& joints() const { return joints_; }
 
   void Step(Float dt);
+  void Clear();
  private:
   void BroadPhase();
 
  private:
   Vec2 gravity_ {0, 0};
+  size_t iterations_ {10};
   std::vector<Body*> bodies_;
   std::vector<Joint*> joints_;
+  std::map<ArbiterKey, Arbiter*> arbiters_;
 };
 
 }

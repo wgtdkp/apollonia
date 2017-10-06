@@ -9,7 +9,7 @@
 using namespace apollonia;
 using namespace std::chrono;
 static time_point<high_resolution_clock> last_clock = high_resolution_clock::now();
-static World world({0.0f, 0.0f});
+static World world({0.0f, -10.0f});
 
 static void DrawText(int x, int y, const char* format, ...) {
 	glMatrixMode(GL_PROJECTION);
@@ -39,18 +39,6 @@ static void DrawText(int x, int y, const char* format, ...) {
 	glPopMatrix();
 }
 
-static void DrawAxis() {
-  glColor3f(0.9f, 0.9f, 0.9f);
-  glBegin(GL_LINE_LOOP);
-  glVertex2f(-10, 0);
-  glVertex2f(10, 0);
-  glEnd();
-  glBegin(GL_LINE_LOOP);
-  glVertex2f(0, -10);
-  glVertex2f(0, 10);
-  glEnd();
-}
-
 static void DrawBody(const Body& body) {
 	glColor3f(0.8f, 0.8f, 0.0f);
 
@@ -67,14 +55,13 @@ static void ApolloniaRun() {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glTranslatef(0.0f, -5.0f, -25.0f);
-  // Step:
+
   auto now = high_resolution_clock::now();
   auto dt = duration_cast<duration<double>>(now - last_clock).count();
   last_clock = now;
   
   int h = glutGet(GLUT_WINDOW_HEIGHT);
   DrawText(5, h - 20, "dt: %.2f ms", dt * 1000);
-  DrawAxis();
 
   world.Step(dt);
   for (auto body : world.bodies()) {
@@ -84,8 +71,25 @@ static void ApolloniaRun() {
   glutSwapBuffers();
 }
 
-static void Keyboard(unsigned char key, int x, int y) {
+static void test() {
+  Body* fencing;
+  fencing = World::NewBody(kInf, {0, -10}, 100, 20);
+  world.Add(fencing);
+  
+  Body* body;
+  body = World::NewBody(200, {0, 8}, 2, 2);
+  //body->velocity = {0, -1};
+  body->rotation = Mat22(kPi / 6);
+  world.Add(body);
+}
 
+static void Keyboard(unsigned char key, int x, int y) {
+  switch (key) {
+  case '1':
+    world.Clear();
+    test();
+    break;
+  }
 }
 
 static void Mouse(int button, int state, int x, int y) {
@@ -97,12 +101,6 @@ static void Reshape(int width, int height) {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(45.0, width/(float)height, 0.1, 100.0);
-}
-
-static void test() {
-  auto body = World::NewBody(20, {0, 10}, 2, 2);
-  body->angularVelocity = 1;
-  world.Add(body);
 }
 
 int main(int argc, char* argv[]) {

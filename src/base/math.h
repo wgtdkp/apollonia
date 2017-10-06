@@ -13,7 +13,7 @@ using std::sin;
 using std::acos;
 using std::asin;
 static const Float kPi = acos(-1);
-static const Float kInf = std::numeric_limits<Float>::infinity();
+static const Float kInf = 1.0e20; //std::numeric_limits<Float>::max();
 
 struct Vec2;
 struct Mat22;
@@ -29,6 +29,7 @@ static inline Vec2 operator/(const Vec2& a, Float b);
 static inline void operator/=(Vec2& a, Float b);
 static inline Float Dot(const Vec2& a, const Vec2& b);
 static inline Float Cross(const Vec2& a, const Vec2& b);
+static inline Vec2 Cross(Float a, const Vec2& b);
 
 static inline Mat22 operator+(const Mat22& a, const Mat22& b);
 static inline void operator+=(Mat22& a, const Mat22& b);
@@ -50,6 +51,7 @@ struct Vec2 {
   Float x;
   Float y;
 
+  Vec2() : x(0), y(0) {}
   Vec2(Float x, Float y) : x(x), y(y) {}
   Float& operator[](size_t idx) {
     assert(idx < 2);
@@ -63,7 +65,7 @@ struct Vec2 {
   }
   // Return the normal that 'v x n' points into paper
   Vec2 Normal() const {
-    return Vec2(y, -x) / Magnitude();
+    return Vec2(y, -x).Normalized();
   }
   Vec2 Normalized() const {
     return *this / Magnitude();
@@ -75,9 +77,9 @@ struct Mat22 {
   static const Mat22 I;
   Mat22(const std::array<Vec2, 2>& mat) : mat_(mat) {}
   Mat22(Float a, Float b, Float c, Float d)
-    : mat_{{ {a, b}, {c, d} }} {}
+      : mat_{{ {a, b}, {c, d} }} {}
   Mat22(Float theta)
-    : mat_{{ {cos(theta), -sin(theta)}, {sin(theta), cos(theta)} }} {}
+      : mat_{{ {cos(theta), -sin(theta)}, {sin(theta), cos(theta)} }} {}
   Float Det() const {
     return 1 / (mat_[0][0] * mat_[1][1] - mat_[0][1] * mat_[1][0]);
   }
@@ -144,6 +146,10 @@ static inline Float Dot(const Vec2& a, const Vec2& b) {
 
 static inline Float Cross(const Vec2& a, const Vec2& b) {
   return a.x * b.y - a.y * b.x;
+}
+
+static inline Vec2 Cross(Float a, const Vec2& b) {
+  return a * Vec2(-b.y, b.x);
 }
 
 static inline Mat22 operator+(const Mat22& a, const Mat22& b) {

@@ -7,12 +7,7 @@
 namespace apollonia {
 
 World::~World() {
-  for (auto body : bodies_) {
-    delete body;
-  }
-  for (auto joint : joints_) {
-    delete joint;
-  }
+  Clear();
 }
 
 Body* World::NewBody(Float mass, const Vec2& position,
@@ -20,7 +15,34 @@ Body* World::NewBody(Float mass, const Vec2& position,
   return new Body(mass, position, width, height);
 }
 
+Arbiter* World::NewArbiter(Body* a, Body* b,
+                           const Arbiter::ContactList& contacts) {
+  return new Arbiter(a, b, contacts);
+}
+
 void World::Step(Float dt) {
+  for (size_t i = 0; i < bodies_.size(); ++i) {
+    for (size_t j = i + 1; j < bodies_.size(); ++j) {
+      auto arbiter = Collide(*bodies_[i], *bodies_[j]);
+      if (arbiter == nullptr) {
+        arbiters_.erase(ArbiterKey(bodies_[i], bodies_[j]));
+        continue;
+      }
+      auto iter = arbiters_.find(*arbiter);
+      if (iter == arbiters_.end()) {
+        arbiters_[*arbiter] = arbiter;
+        continue;
+      }
+      auto prev_arbiter = iter->second;
+      if (*prev_arbiter == *arbiter) {
+        prev_arbiter->UpdateContacts(*arbiter);
+      } else {
+        prev_arbiter->SetContacts(*arbiter);
+      }
+      delete arbiter;
+    }
+  }
+
   for (auto body : bodies_) {
     if (body->mass == kInf) {
       continue;
@@ -29,11 +51,12 @@ void World::Step(Float dt) {
     body->angularVelocity += (body->torque / body->inertia) * dt;
   }
 
-  for (size_t i = 0; i < bodies_.size(); ++i) {
-    for (size_t j = i + 1; j < bodies_.size(); ++j) {
-      Collide(bodies_[i], bodies_[j]);
+  for (size_t i = 0; i < iterations_; ++i) {
+    for (auto& kv : arbiters_) {
+      kv.second->ApplyImpulse();
     }
   }
+  arbiters_.clear();
 
   for (auto body : bodies_) {
     body->position += body->velocity * dt;
@@ -43,6 +66,21 @@ void World::Step(Float dt) {
   }
 
   // TODO(wgtdkp): loop joints
+}
+
+void World::Clear() {
+  for (auto& kv : arbiters_) {
+    delete kv.second;
+  }
+  arbiters_.clear();
+  for (auto joint : joints_) {
+    delete joint;
+  }
+  joints_.clear();
+  for (auto body : bodies_) {
+    delete body;
+  }
+  bodies_.clear();
 }
 
 };

@@ -5,6 +5,8 @@
 namespace apollonia {
 
 struct Body;
+class World;
+class ArbiterKey;
 
 struct Contact {
   Vec2 position;
@@ -15,21 +17,56 @@ struct Contact {
   Float pn {0};
   Float pt {0};
   Float pnb {0};
-  Float mass_normal, mass_tangent;
+  Float mass_normal;
+  Float mass_tangent;
   Float bias;
+
+  bool operator==(const Contact& other) const {
+    return ia == other.ia && ib == other.ib;
+  }
+  bool operator!=(const Contact& other) const {
+    return !(*this == other);
+  }
 };
 
-struct Arbiter {
-  static const size_t kMaxContacts = 2;
-  Body* body_a;
-  Body* body_b;
-  std::array<Contact, kMaxContacts> contacts;
-  size_t num_contact;
-
+class Arbiter {
+ public:
+  friend class World;
+  friend class ArbiterKey;
+  static const size_t kNumContacts = 2;
+  using ContactList = std::array<Contact, kNumContacts>;
+  
+  bool operator==(const Arbiter& other) const;
   void ApplyImpulse();
+  void UpdateContacts(const Arbiter& arbiter);
+  void SetContacts(const Arbiter& arbiter);
 
+ private:
+  Arbiter(Body* a, Body* b, const ContactList& contacts)
+      : a_(a), b_(b), contacts_(contacts) {}
+  Body* a_;
+  Body* b_;
+  ContactList contacts_;
 };
 
-void Collide(Body* a, Body* b);
+class ArbiterKey {
+ public:
+  ArbiterKey(const Body* a, const Body* b) : a_(a), b_(b) {}
+  ArbiterKey(const Arbiter& arbiter) : ArbiterKey(arbiter.a_, arbiter.b_) {}
+  bool operator<(const ArbiterKey& other) const;
+  bool operator==(const ArbiterKey& other) const {
+    return !(*this < other) && !(other < *this);
+  }
+  bool operator!=(const ArbiterKey& other) const {
+    return !(*this == other);
+  }
+
+ private:
+  const Body* a_;
+  const Body* b_;
+};
+
+
+Arbiter* Collide(Body& a, Body& b);
 
 }
