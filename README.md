@@ -10,8 +10,8 @@ A simplicity-first 2D physics engine.
 - ![](./doc/apollonia-0.gif)
 
 ## Reference
-- Box2D
-- Chipmunk
+- [Box2D]
+- [Chipmunk]
 
 [OpenGL]:https://www.opengl.org/
 [GLUT]:https://www.opengl.org/resources/libraries/glut/
