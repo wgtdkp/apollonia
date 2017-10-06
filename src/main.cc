@@ -63,6 +63,7 @@ static void ApolloniaRun() {
   int h = glutGet(GLUT_WINDOW_HEIGHT);
   DrawText(5, h - 20, "dt: %.2f ms", dt * 1000);
 
+  dt = 0.016;
   world.Step(dt);
   for (auto body : world.bodies()) {
     DrawBody(*body);
@@ -71,25 +72,72 @@ static void ApolloniaRun() {
   glutSwapBuffers();
 }
 
-static void test() {
-  Body* fencing;
-  fencing = World::NewBody(kInf, {0, -10}, 100, 20);
+static void Test() {
+  auto fencing = World::NewBody(kInf, {0, -10}, 100, 20);
   world.Add(fencing);
   
   Body* body;
   body = World::NewBody(200, {0, 8}, 2, 2);
-  //body->velocity = {0, -1};
-  body->rotation = Mat22(kPi / 6);
+  //body->velocity = {20, -10};
+  body->rotation = Mat22(kPi / 4);
   world.Add(body);
+}
+
+Float Random(Float low, Float high) {
+  return 1.0 * rand() / RAND_MAX * (high - low) + low;
+}
+
+// A vertical stack
+static void TestStack() {
+  auto fencing = World::NewBody(kInf, {0, -10}, 100, 20);
+	fencing->friction = 0.2f;
+	world.Add(fencing);
+
+	for (int i = 0; i < 10; ++i) {
+    Float x = 0;//0.1 * i; //Random(-0.1f, 0.1f);
+    auto body = World::NewBody(1, {x, 0.51f + 1.05f * i}, 1, 1);
+		body->friction = 0.2f;
+		world.Add(body);
+	}
+}
+
+static void TestPyramid() {
+  auto fencing = World::NewBody(kInf, {0, -10}, 100, 20);
+	fencing->friction = 0.2f;
+  world.Add(fencing);
+  
+  Vec2 x(-6.0f, 0.75f);
+	Vec2 y;
+
+	for (int i = 0; i < 6; ++i) {
+		y = x;
+
+		for (int j = i; j < 6; ++j) {
+      auto body = World::NewBody(10, y, 1, 1);
+			body->friction = 0.2f;
+			world.Add(body);
+			y += Vec2(1.125f, 0.0f);
+		}
+		x += Vec2(0.5625f, 2.0f);
+	}
 }
 
 static void Keyboard(unsigned char key, int x, int y) {
   switch (key) {
   case '1':
     world.Clear();
-    test();
+    Test();
+    break;
+  case '2':
+    world.Clear();
+    TestStack();
+    break;
+  case '3':
+    world.Clear();
+    TestPyramid();
     break;
   }
+  
 }
 
 static void Mouse(int button, int state, int x, int y) {
@@ -109,7 +157,7 @@ int main(int argc, char* argv[]) {
   glutInitWindowSize(800, 800);
   glutCreateWindow("Apollonia");
 
-  test();
+  Test();
 
   glutReshapeFunc(Reshape);
   glutDisplayFunc(ApolloniaRun);

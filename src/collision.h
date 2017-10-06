@@ -1,6 +1,7 @@
 #pragma once
 
 #include "base/math.h"
+#include <vector>
 
 namespace apollonia {
 
@@ -21,8 +22,11 @@ struct Contact {
   Float mass_tangent;
   Float bias;
 
+  bool operator<(const Contact& other) const {
+    return ia < other.ia || (ia == other.ia && ib < other.ib);
+  }
   bool operator==(const Contact& other) const {
-    return ia == other.ia && ib == other.ib;
+    return !(*this < other) && !(other < *this);
   }
   bool operator!=(const Contact& other) const {
     return !(*this == other);
@@ -33,13 +37,16 @@ class Arbiter {
  public:
   friend class World;
   friend class ArbiterKey;
-  static const size_t kNumContacts = 2;
-  using ContactList = std::array<Contact, kNumContacts>;
+  static const size_t kMaxContacts = 8;
+  using ContactList = std::vector<Contact>;
   
   bool operator==(const Arbiter& other) const;
   void ApplyImpulse();
-  void UpdateContacts(const Arbiter& arbiter);
-  void SetContacts(const Arbiter& arbiter);
+  void AccumulateContacts(const Arbiter& old_arbiter);
+  void AddContact(const Contact& contact) {
+    contacts_.push_back(contact);
+    assert(contacts_.size() <= kMaxContacts);
+  }
 
  private:
   Arbiter(Body* a, Body* b, const ContactList& contacts)
@@ -67,6 +74,6 @@ class ArbiterKey {
 };
 
 
-Arbiter* Collide(Body& a, Body& b);
+Arbiter* Collide(Body& a, Body& b, Float dt);
 
 }

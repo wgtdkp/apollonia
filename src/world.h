@@ -19,7 +19,7 @@ class World {
   static Body* NewBody(Float mass, const Vec2& position,
                        Float width, Float height);
   static Arbiter* NewArbiter(Body* a, Body* b,
-                             const Arbiter::ContactList& contacts);
+      const Arbiter::ContactList& contacts=Arbiter::ContactList());
   Joint* NewJoint();
   void Add(Body* body) {
     bodies_.push_back(body);

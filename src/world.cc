@@ -23,7 +23,10 @@ Arbiter* World::NewArbiter(Body* a, Body* b,
 void World::Step(Float dt) {
   for (size_t i = 0; i < bodies_.size(); ++i) {
     for (size_t j = i + 1; j < bodies_.size(); ++j) {
-      auto arbiter = Collide(*bodies_[i], *bodies_[j]);
+      if (bodies_[i]->mass == kInf && bodies_[j]->mass == kInf) {
+        continue;
+      }
+      auto arbiter = Collide(*bodies_[i], *bodies_[j], dt);
       if (arbiter == nullptr) {
         arbiters_.erase(ArbiterKey(bodies_[i], bodies_[j]));
         continue;
@@ -32,14 +35,12 @@ void World::Step(Float dt) {
       if (iter == arbiters_.end()) {
         arbiters_[*arbiter] = arbiter;
         continue;
-      }
-      auto prev_arbiter = iter->second;
-      if (*prev_arbiter == *arbiter) {
-        prev_arbiter->UpdateContacts(*arbiter);
       } else {
-        prev_arbiter->SetContacts(*arbiter);
+        auto& old_arbiter = iter->second;
+        arbiter->AccumulateContacts(*old_arbiter);
+        delete old_arbiter;
+        old_arbiter = arbiter;
       }
-      delete arbiter;
     }
   }
 
@@ -56,7 +57,6 @@ void World::Step(Float dt) {
       kv.second->ApplyImpulse();
     }
   }
-  arbiters_.clear();
 
   for (auto body : bodies_) {
     body->position += body->velocity * dt;

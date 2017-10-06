@@ -19,11 +19,20 @@ static Vec2 SegmentIntersection(const Vec2& a, const Vec2& b,
                                 const Vec2& c, const Vec2& d) {
   auto ab = b - a, cd = d - c;
   auto ac = c - a, bc = c - b;
-  auto ratio = abs(Cross(ac, cd)) / (abs(Cross(ac, cd)) + abs(Cross(bc, cd)));
+  auto total = (abs(Cross(ac, cd)) + abs(Cross(bc, cd)));
+  if (total == 0) {
+    if (Dot(ac, bc) < 0) {
+      return c;
+    }
+    return a;
+  }
+  auto ratio = abs(Cross(ac, cd)) / total;
   return a + ab * ratio;
 }
 
-Arbiter* Collide(Body& a, Body& b) {
+Arbiter* Collide(Body& a, Body& b, Float dt) {
+  static const Float kAllowedPenetration = 0.01;
+  static const Float kBiasFactor = 0.18;
   size_t ia, ib;
   Float sa, sb;
   if ((sa = a.FindMinSeparatingAxis(ia, b)) >= 0) {
@@ -37,11 +46,13 @@ Arbiter* Collide(Body& a, Body& b) {
     std::swap(ia, ib);
     std::swap(a, b);
   }
-  
   auto normal = a.EdgeAt(ia).Normal();
+  auto ab = b.LocalToWorld(b.center) - a.LocalToWorld(a.center);
+  normal *= Dot(ab, normal) > 0 ? 1 : -1;
+
   auto tangent = normal.Normal();
-  Arbiter::ContactList contacts;
-  size_t k = 0, na = a.Count(), nb = b.Count();
+  size_t na = a.Count(), nb = b.Count();
+  auto arbiter = World::NewArbiter(&a, &b);
   for (size_t i = 0; i < na; ++i) {
     for (size_t j = 0; j < nb; ++j) {
       auto va1 = a.LocalToWorld(a[i]), va2 = a.LocalToWorld(a[(i+1)%na]);
@@ -49,26 +60,24 @@ Arbiter* Collide(Body& a, Body& b) {
       if (!SegmentIntersect(va1, va2, vb1, vb2)) {
         continue;
       }
-      assert(k < Arbiter::kNumContacts);
-      auto& contact = contacts[k];
+      Contact contact;
       contact.position = SegmentIntersection(va1, va2, vb1, vb2);
       contact.normal = normal;
       contact.ra = contact.position - a.LocalToWorld(a.center);
       contact.rb = contact.position - b.LocalToWorld(b.center);
       contact.ia = i;
       contact.ib = j;
-      contact.separation = -abs(Dot(va1 - contact.position, normal));
+      contact.separation = sa;
 
       contact.mass_normal = 1 / (a.inv_mass + b.inv_mass + Dot(a.inv_inertia * Cross(Cross(contact.ra, normal), contact.ra) + b.inv_inertia * Cross(Cross(contact.rb, normal), contact.rb), normal));
 
       contact.mass_tangent = 1 / (a.inv_mass + b.inv_mass + Dot(a.inv_inertia * Cross(Cross(contact.ra, tangent), contact.ra) + b.inv_inertia * Cross(Cross(contact.rb, tangent), contact.rb), tangent));
       
-      contact.bias = 0;
-      ++k;
+      contact.bias = -kBiasFactor / dt * std::min(0.0f, contact.separation + kAllowedPenetration);
+      arbiter->AddContact(contact);
     }
   }
-  assert(k == 2);
-  return World::NewArbiter(&a, &b, contacts);
+  return arbiter;
 }
 
 bool Arbiter::operator==(const Arbiter& other) const {
@@ -90,7 +99,7 @@ void Arbiter::ApplyImpulse() {
     Vec2 dv = b.velocity + Cross(b.angularVelocity, contact.rb) - a.velocity - Cross(a.angularVelocity, contact.ra);
 
     auto vn = Dot(dv, contact.normal);
-    auto dpn = -vn * contact.mass_normal;
+    auto dpn = (-vn + contact.bias) * contact.mass_normal;
     dpn = std::max(contact.pn + dpn, 0.0f) - contact.pn;
     auto pn = dpn * contact.normal;
     a.velocity -= pn * a.inv_mass;
@@ -115,21 +124,22 @@ void Arbiter::ApplyImpulse() {
   }
 }
 
-void Arbiter::UpdateContacts(const Arbiter& arbiter) {
-  for (size_t i = 0; i < contacts_.size(); ++i) {
-    auto pn = contacts_[i].pn;
-    auto pt = contacts_[i].pt;
-    auto pnb = contacts_[i].pnb;
-    contacts_[i] = arbiter.contacts_[i];
-    contacts_[i].pn = pn;
-    contacts_[i].pt = pt;
-    contacts_[i].pnb = pnb;
-  }
-}
+void Arbiter::AccumulateContacts(const Arbiter& old_arbiter) {
+  const auto& old_contacts = old_arbiter.contacts_;
+  for (auto& new_contact : contacts_) {
+    auto old_contact = std::find(old_contacts.begin(), old_contacts.end(), new_contact);
+    if (old_contact != old_contacts.end()) {
+      new_contact.pn = old_contact->pn;
+      new_contact.pt = old_contact->pt;
+      new_contact.pnb = old_contact->pnb;
 
-void Arbiter::SetContacts(const Arbiter& arbiter) {
-  assert(ArbiterKey(*this) == ArbiterKey(arbiter));
-  contacts_ = arbiter.contacts_;
+      auto p = new_contact.pn * new_contact.normal + new_contact.pt * new_contact.normal.Normal();
+      a_->velocity -= a_->inv_mass * p;
+      a_->angularVelocity -= a_->inv_inertia * Cross(new_contact.ra, p);
+      b_->velocity += b_->inv_mass * p;
+      b_->angularVelocity += b_->inv_inertia * Cross(new_contact.rb, p);
+    }
+  }
 }
 
 bool ArbiterKey::operator<(const ArbiterKey& other) const {
