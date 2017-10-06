@@ -6,6 +6,8 @@ A simplicity-first 2D physics engine.
 - [OpenGL]
 - [GLUT]
 
+## Demo
+- ![](./doc/apollonia-0.gif)
 
 ## Reference
 - Box2D
