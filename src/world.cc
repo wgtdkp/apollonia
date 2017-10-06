@@ -47,8 +47,8 @@ void World::Step(Float dt) {
     if (body->mass == kInf) {
       continue;
     }
-    body->velocity += (gravity_ + body->force / body->mass) * dt;
-    body->angularVelocity += (body->torque / body->inertia) * dt;
+    body->velocity += (gravity_ + body->force * body->inv_mass) * dt;
+    body->angularVelocity += (body->torque * body->inv_inertia) * dt;
   }
 
   for (size_t i = 0; i < iterations_; ++i) {

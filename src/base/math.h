@@ -13,7 +13,7 @@ using std::sin;
 using std::acos;
 using std::asin;
 static const Float kPi = acos(-1);
-static const Float kInf = 1.0e20; //std::numeric_limits<Float>::max();
+static const Float kInf = std::numeric_limits<Float>::max();
 
 struct Vec2;
 struct Mat22;
@@ -102,7 +102,6 @@ struct Mat22 {
  private:
   std::array<Vec2, 2> mat_;
 };
-
 
 static inline Vec2 operator+(const Vec2& a, const Vec2& b) {
   return {a.x + b.x, a.y + b.y};

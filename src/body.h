@@ -11,7 +11,9 @@ struct Contact;
 struct Body {
   friend class World;
   Float mass            {0};
+  Float inv_mass;
   Float inertia         {0};
+  Float inv_inertia;
   // Gravity center
   Vec2  center          {0, 0};
   Vec2  position        {0, 0};

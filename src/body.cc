@@ -47,6 +47,8 @@ Body::Body(Float mass, const Vec2& position, const std::vector<Vec2>& vertices)
     : mass(mass), inertia(PolygonMomentOfInertia(mass, vertices)),
       center(PolygonGravityCenter(vertices)),
       position(position), vertices_(vertices) {
+  inv_mass = mass == kInf ? 0 : 1 / mass;
+  inv_inertia = inertia == kInf ? 0 : 1 / inertia;
 }
 
 std::pair<Float, Float> Body::ProjectTo(Vec2 line) const {

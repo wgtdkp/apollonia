@@ -65,9 +65,9 @@ Arbiter* Collide(Body& a, Body& b) {
       contact.ib = j;
       contact.separation = -abs(Dot(va1 - contact.position, normal));
 
-      contact.mass_normal = 1 / (1 / a.mass + 1 / b.mass + Dot(1 / a.inertia * Cross(Cross(contact.ra, normal), contact.ra) + 1 / b.inertia * Cross(Cross(contact.rb, normal), contact.rb), normal));
+      contact.mass_normal = 1 / (a.inv_mass + b.inv_mass + Dot(a.inv_inertia * Cross(Cross(contact.ra, normal), contact.ra) + b.inv_inertia * Cross(Cross(contact.rb, normal), contact.rb), normal));
 
-      contact.mass_tangent = 1 / (1 / a.mass + 1 / b.mass + Dot(1 / a.inertia * Cross(Cross(contact.ra, tangent), contact.ra) + 1 / b.inertia * Cross(Cross(contact.rb, tangent), contact.rb), tangent));
+      contact.mass_tangent = 1 / (a.inv_mass + b.inv_mass + Dot(a.inv_inertia * Cross(Cross(contact.ra, tangent), contact.ra) + b.inv_inertia * Cross(Cross(contact.rb, tangent), contact.rb), tangent));
       
       contact.bias = 0;
       ++k;
@@ -99,10 +99,10 @@ void Arbiter::ApplyImpulse() {
     auto dpn = -vn * contact.mass_normal;
     dpn = std::max(contact.pn + dpn, 0.0f) - contact.pn;
     auto pn = dpn * contact.normal;
-    a.velocity -= pn / a.mass;
-    a.angularVelocity -= 1 / a.inertia * Cross(contact.ra, pn);
-    b.velocity += pn / b.mass;
-    b.angularVelocity += 1 / b.inertia * Cross(contact.rb, pn);
+    a.velocity -= pn * a.inv_mass;
+    a.angularVelocity -= a.inv_inertia * Cross(contact.ra, pn);
+    b.velocity += pn * b.inv_mass;
+    b.angularVelocity += b.inv_inertia * Cross(contact.rb, pn);
     contact.pn += dpn;
 
     dv = b.velocity + Cross(b.angularVelocity, contact.rb) - a.velocity - Cross(a.angularVelocity, contact.ra);
@@ -113,10 +113,10 @@ void Arbiter::ApplyImpulse() {
     auto dpt = -vt * contact.mass_tangent;
     dpt = std::max(-friction * contact.pn, std::min(friction * contact.pn, contact.pt + dpt)) - contact.pt;
     auto pt = dpt * tangent;
-    a.velocity -= pt / a.mass;
-    a.angularVelocity -= 1 / a.inertia * Cross(contact.ra, pt);
-    b.velocity += pt / b.mass;
-    b.angularVelocity += 1 / b.inertia * Cross(contact.rb, pt);
+    a.velocity -= pt * a.inv_mass;
+    a.angularVelocity -= a.inv_inertia * Cross(contact.ra, pt);
+    b.velocity += pt * b.inv_mass;
+    b.angularVelocity += b.inv_inertia * Cross(contact.rb, pt);
     contact.pt += dpt;
   }
 }
