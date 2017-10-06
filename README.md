@@ -11,7 +11,7 @@ A simplicity-first 2D physics engine.
 
 ## Reference
 - [Box2D]
-- [Chipmunk]
+- [Chipmunk2D]
 
 [OpenGL]:https://www.opengl.org/
 [GLUT]:https://www.opengl.org/resources/libraries/glut/
