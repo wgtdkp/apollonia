@@ -3,12 +3,6 @@
 #include "world.h"
 #include <algorithm>
 
-#include <iostream>
-#include <string>
-#include <cstdio>
-
-static size_t cnt = 0;
-
 namespace apollonia {
 
 using std::abs;
