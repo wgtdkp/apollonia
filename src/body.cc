@@ -1,17 +1,9 @@
 #include "body.h"
+#include <algorithm>
 
 namespace apollonia {
 
 using std::abs;
-
-// Return negative if them overlap to each other
-static Float Separation(const std::pair<Float, Float>& a,
-                        const std::pair<Float, Float>& b) {
-  if (a.first > b.first) {
-    return Separation(b, a);
-  }
-  return std::max(a.first - b.second, b.first - a.second);
-}
 
 static Float PolygonArea(const std::vector<Vec2>& vertices) {
   Float area = 0;
@@ -47,6 +39,8 @@ Body::Body(Float mass, const Vec2& position, const std::vector<Vec2>& vertices)
     : mass(mass), inertia(PolygonMomentOfInertia(mass, vertices)),
       center(PolygonGravityCenter(vertices)),
       position(position), vertices_(vertices) {
+  // TODO(wgtdkp): ensure convex polygon
+  assert(vertices_.size() >= 3);
   inv_mass = mass == kInf ? 0 : 1 / mass;
   inv_inertia = inertia == kInf ? 0 : 1 / inertia;
 }
@@ -66,12 +60,15 @@ std::pair<Float, Float> Body::ProjectTo(Vec2 line) const {
 Float Body::FindMinSeparatingAxis(size_t& idx, const Body& other) const {
   Float separation = -kInf;
   for (size_t i = 0; i < this->Count(); ++i) {
+    auto va = this->LocalToWorld((*this)[i]);
     auto normal = this->EdgeAt(i).Normal();
-    auto project_a = this->ProjectTo(normal);
-    auto project_b = other.ProjectTo(normal);
-    auto sep = Separation(project_a, project_b);
-    if (sep > separation) {
-      separation = sep;
+    auto min_sep = kInf;
+    for (size_t j = 0; j < other.Count(); ++j) {
+      auto vb = other.LocalToWorld(other[j]);
+      min_sep = std::min(min_sep, Dot(vb - va, normal));
+    }
+    if (min_sep > separation) {
+      separation = min_sep;
       idx = i;
     }
   }

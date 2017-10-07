@@ -11,22 +11,25 @@ class ArbiterKey;
 
 struct Contact {
   Vec2 position;
-  Vec2 normal;
   Vec2 ra, rb;
-  size_t ia, ib;
+  std::array<bool, 2> from_a;
+  std::array<size_t, 2> indices;
   Float separation;
   Float pn {0};
   Float pt {0};
-  Float pnb {0};
+  Float bias {0};  
   Float mass_normal;
   Float mass_tangent;
-  Float bias;
 
-  bool operator<(const Contact& other) const {
-    return ia < other.ia || (ia == other.ia && ib < other.ib);
-  }
+  Contact(const Body& b, size_t idx);
+
   bool operator==(const Contact& other) const {
-    return !(*this < other) && !(other < *this);
+    if (from_a == other.from_a && indices == other.indices) {
+      return true;
+    }
+    decltype(from_a) from_a_swap = {{from_a[1], from_a[0]}};
+    decltype(indices) indices_swap = {{indices[1], indices[0]}};
+    return from_a_swap == other.from_a && indices_swap == other.indices;
   }
   bool operator!=(const Contact& other) const {
     return !(*this == other);
@@ -37,7 +40,7 @@ class Arbiter {
  public:
   friend class World;
   friend class ArbiterKey;
-  static const size_t kMaxContacts = 8;
+  static const size_t kMaxContacts = 2;
   using ContactList = std::vector<Contact>;
   
   bool operator==(const Arbiter& other) const;
@@ -49,10 +52,11 @@ class Arbiter {
   }
 
  private:
-  Arbiter(Body* a, Body* b, const ContactList& contacts)
-      : a_(a), b_(b), contacts_(contacts) {}
+  Arbiter(Body* a, Body* b, size_t idx, const ContactList& contacts)
+      : a_(a), b_(b), idx_(idx), contacts_(contacts) {}
   Body* a_;
   Body* b_;
+  size_t idx_;
   ContactList contacts_;
 };
 
@@ -74,6 +78,6 @@ class ArbiterKey {
 };
 
 
-Arbiter* Collide(Body& a, Body& b, Float dt);
+Arbiter* Collide(Body* a, Body* b, Float dt);
 
 }

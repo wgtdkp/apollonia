@@ -54,11 +54,4 @@ struct Body {
   std::vector<Vec2> vertices_;
 };
 
-class PolygonBody : public Body {
- public:
-  
- private:
-  std::vector<Vec2> vertices_;
-};
-
 }

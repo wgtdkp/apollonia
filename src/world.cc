@@ -15,9 +15,9 @@ Body* World::NewBody(Float mass, const Vec2& position,
   return new Body(mass, position, width, height);
 }
 
-Arbiter* World::NewArbiter(Body* a, Body* b,
+Arbiter* World::NewArbiter(Body* a, Body* b, size_t idx,
                            const Arbiter::ContactList& contacts) {
-  return new Arbiter(a, b, contacts);
+  return new Arbiter(a, b, idx, contacts);
 }
 
 void World::Step(Float dt) {
@@ -26,15 +26,15 @@ void World::Step(Float dt) {
       if (bodies_[i]->mass == kInf && bodies_[j]->mass == kInf) {
         continue;
       }
-      auto arbiter = Collide(*bodies_[i], *bodies_[j], dt);
+      auto arbiter = Collide(bodies_[i], bodies_[j], dt);
       if (arbiter == nullptr) {
+        // FIXME(wgtdkp): delete the arbiter
         arbiters_.erase(ArbiterKey(bodies_[i], bodies_[j]));
         continue;
       }
       auto iter = arbiters_.find(*arbiter);
       if (iter == arbiters_.end()) {
         arbiters_[*arbiter] = arbiter;
-        continue;
       } else {
         auto& old_arbiter = iter->second;
         arbiter->AccumulateImpulse(*old_arbiter);

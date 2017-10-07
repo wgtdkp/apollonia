@@ -54,7 +54,7 @@ static void ApolloniaRun() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  glTranslatef(0.0f, -5.0f, -25.0f);
+  glTranslatef(0.0f, -7.0f, -25.0f);
 
   auto now = high_resolution_clock::now();
   auto dt = duration_cast<duration<double>>(now - last_clock).count();
@@ -94,7 +94,7 @@ static void TestStack() {
 	world.Add(fencing);
 
 	for (int i = 0; i < 10; ++i) {
-    Float x = 0;//0.1 * i; //Random(-0.1f, 0.1f);
+    Float x = Random(-0.1f, 0.1f);
     auto body = World::NewBody(1, {x, 0.51f + 1.05f * i}, 1, 1);
 		body->friction = 0.2f;
 		world.Add(body);
@@ -109,10 +109,11 @@ static void TestPyramid() {
   Vec2 x(-6.0f, 0.75f);
 	Vec2 y;
 
-	for (int i = 0; i < 6; ++i) {
+  int n = 10;
+	for (int i = 0; i < n; ++i) {
 		y = x;
 
-		for (int j = i; j < 6; ++j) {
+		for (int j = i; j < n; ++j) {
       auto body = World::NewBody(10, y, 1, 1);
 			body->friction = 0.2f;
 			world.Add(body);
@@ -157,7 +158,7 @@ int main(int argc, char* argv[]) {
   glutInitWindowSize(800, 800);
   glutCreateWindow("Apollonia");
 
-  Test();
+  TestPyramid();
 
   glutReshapeFunc(Reshape);
   glutDisplayFunc(ApolloniaRun);

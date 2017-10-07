@@ -18,7 +18,7 @@ class World {
                        const std::vector<Vec2>& vertices);
   static Body* NewBody(Float mass, const Vec2& position,
                        Float width, Float height);
-  static Arbiter* NewArbiter(Body* a, Body* b,
+  static Arbiter* NewArbiter(Body* a, Body* b, size_t idx,
       const Arbiter::ContactList& contacts=Arbiter::ContactList());
   Joint* NewJoint();
   void Add(Body* body) {
