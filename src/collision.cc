@@ -101,30 +101,24 @@ void Arbiter::ApplyImpulse() {
     auto vn = Dot(dv, contact.normal);
     auto dpn = (-vn + contact.bias) * contact.mass_normal;
     dpn = std::max(contact.pn + dpn, 0.0f) - contact.pn;
-    auto pn = dpn * contact.normal;
-    a.velocity -= pn * a.inv_mass;
-    a.angularVelocity -= a.inv_inertia * Cross(contact.ra, pn);
-    b.velocity += pn * b.inv_mass;
-    b.angularVelocity += b.inv_inertia * Cross(contact.rb, pn);
-    contact.pn += dpn;
-
-    dv = b.velocity + Cross(b.angularVelocity, contact.rb) - a.velocity - Cross(a.angularVelocity, contact.ra);
-
+    
     auto tangent = contact.normal.Normal();
     Float friction = sqrt(a.friction * b.friction);
     auto vt = Dot(dv, tangent);
     auto dpt = -vt * contact.mass_tangent;
     dpt = std::max(-friction * contact.pn, std::min(friction * contact.pn, contact.pt + dpt)) - contact.pt;
-    auto pt = dpt * tangent;
-    a.velocity -= pt * a.inv_mass;
-    a.angularVelocity -= a.inv_inertia * Cross(contact.ra, pt);
-    b.velocity += pt * b.inv_mass;
-    b.angularVelocity += b.inv_inertia * Cross(contact.rb, pt);
+    
+    auto p = dpn * contact.normal + dpt * tangent;
+    a.velocity -= p * a.inv_mass;
+    a.angularVelocity -= a.inv_inertia * Cross(contact.ra, p);
+    b.velocity += p * b.inv_mass;
+    b.angularVelocity += b.inv_inertia * Cross(contact.rb, p);
+    contact.pn += dpn;
     contact.pt += dpt;
   }
 }
 
-void Arbiter::AccumulateContacts(const Arbiter& old_arbiter) {
+void Arbiter::AccumulateImpulse(const Arbiter& old_arbiter) {
   const auto& old_contacts = old_arbiter.contacts_;
   for (auto& new_contact : contacts_) {
     auto old_contact = std::find(old_contacts.begin(), old_contacts.end(), new_contact);

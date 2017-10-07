@@ -37,7 +37,7 @@ void World::Step(Float dt) {
         continue;
       } else {
         auto& old_arbiter = iter->second;
-        arbiter->AccumulateContacts(*old_arbiter);
+        arbiter->AccumulateImpulse(*old_arbiter);
         delete old_arbiter;
         old_arbiter = arbiter;
       }

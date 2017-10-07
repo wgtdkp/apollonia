@@ -42,7 +42,7 @@ class Arbiter {
   
   bool operator==(const Arbiter& other) const;
   void ApplyImpulse();
-  void AccumulateContacts(const Arbiter& old_arbiter);
+  void AccumulateImpulse(const Arbiter& old_arbiter);
   void AddContact(const Contact& contact) {
     contacts_.push_back(contact);
     assert(contacts_.size() <= kMaxContacts);
