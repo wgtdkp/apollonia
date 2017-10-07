@@ -109,10 +109,10 @@ static void TestPyramid() {
   Vec2 x(-6.0f, 0.75f);
 	Vec2 y;
 
-	for (int i = 0; i < 6; ++i) {
+	for (int i = 0; i < 10; ++i) {
 		y = x;
 
-		for (int j = i; j < 6; ++j) {
+		for (int j = i; j < 10; ++j) {
       auto body = World::NewBody(10, y, 1, 1);
 			body->friction = 0.2f;
 			world.Add(body);

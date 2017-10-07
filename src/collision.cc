@@ -30,22 +30,26 @@ static Vec2 SegmentIntersection(const Vec2& a, const Vec2& b,
   return a + ab * ratio;
 }
 
-Arbiter* Collide(Body& a, Body& b, Float dt) {
+Arbiter* Collide(Body* pa, Body* pb, Float dt) {
   static const Float kAllowedPenetration = 0.01;
-  static const Float kBiasFactor = 0.18;
+  static const Float kBiasFactor = 0.2;
   size_t ia, ib;
   Float sa, sb;
-  if ((sa = a.FindMinSeparatingAxis(ia, b)) >= 0) {
+  if ((sa = pa->FindMinSeparatingAxis(ia, *pb)) >= 0) {
     return nullptr;
   }
-  if ((sb = b.FindMinSeparatingAxis(ib, a)) >= 0) {
+  if ((sb = pb->FindMinSeparatingAxis(ib, *pa)) >= 0) {
     return nullptr;
   }
   if (sa < sb) {
     std::swap(sa, sb);
     std::swap(ia, ib);
-    std::swap(a, b);
+    std::swap(pa, pb);
   }
+
+  auto& a = *pa;
+  auto& b = *pb;
+
   auto normal = a.EdgeAt(ia).Normal();
   auto ab = b.LocalToWorld(b.center) - a.LocalToWorld(a.center);
   normal *= Dot(ab, normal) > 0 ? 1 : -1;

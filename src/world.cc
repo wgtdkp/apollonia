@@ -26,7 +26,7 @@ void World::Step(Float dt) {
       if (bodies_[i]->mass == kInf && bodies_[j]->mass == kInf) {
         continue;
       }
-      auto arbiter = Collide(*bodies_[i], *bodies_[j], dt);
+      auto arbiter = Collide(bodies_[i], bodies_[j], dt);
       if (arbiter == nullptr) {
         arbiters_.erase(ArbiterKey(bodies_[i], bodies_[j]));
         continue;

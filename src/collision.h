@@ -74,6 +74,6 @@ class ArbiterKey {
 };
 
 
-Arbiter* Collide(Body& a, Body& b, Float dt);
+Arbiter* Collide(Body* a, Body* b, Float dt);
 
 }
