@@ -1,5 +1,6 @@
 #pragma once
 
+#include "apollonia.h"
 #include "base/math.h"
 #include <vector>
 
@@ -10,12 +11,11 @@ struct Contact;
 
 struct Body {
   friend class World;
-  Float mass            {0};
+  Float mass;
   Float inv_mass;
-  Float inertia         {0};
+  Float inertia;
   Float inv_inertia;
-  // Gravity center
-  Vec2  center          {0, 0};
+  Vec2  centroid        {0, 0};
   Vec2  position        {0, 0};
   Mat22 rotation        {Mat22::I};
   Vec2  velocity        {0, 0};
@@ -33,7 +33,7 @@ struct Body {
   }
   // Get local vertices with rotation
   Vec2 operator[](size_t idx) const {
-    return rotation * (vertices_[idx] - center) + center;
+    return rotation * (vertices_[idx] - centroid) + centroid;
   }
   Vec2 EdgeAt(size_t idx) const {
     return (*this)[(idx+1)%Count()] - (*this)[idx];
@@ -51,6 +51,8 @@ struct Body {
   Body(Float mass, const Vec2& position, Float width, Float height)
       : Body(mass, position, {{width/2, height/2}, {-width/2, height/2},
                               {-width/2, -height/2}, {width/2, -height/2}}) {}
+  DISABLE_COPY_AND_ASSIGN(Body)
+
   std::vector<Vec2> vertices_;
 };
 

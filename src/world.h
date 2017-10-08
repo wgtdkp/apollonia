@@ -1,14 +1,15 @@
 #pragma once
 
-#include "collision.h"
 #include "base/math.h"
+#include "collision.h"
+#include "joint.h"
+
 #include <vector>
 #include <map>
 
 namespace apollonia {
 
 struct Body;
-class Joint;
 
 class World {
  public:
@@ -20,7 +21,7 @@ class World {
                        Float width, Float height);
   static Arbiter* NewArbiter(Body* a, Body* b, size_t idx,
       const Arbiter::ContactList& contacts=Arbiter::ContactList());
-  static Joint* NewJoint(Body* a, Body* b, const Vec2& anchor);
+  static RevoluteJoint* NewRevoluteJoint(Body& a, Body& b, const Vec2& anchor);
   void Add(Body* body) {
     bodies_.push_back(body);
   }

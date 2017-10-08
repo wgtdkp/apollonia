@@ -37,7 +37,7 @@ static Float PolygonMomentOfInertia(Float mass,
 
 Body::Body(Float mass, const Vec2& position, const std::vector<Vec2>& vertices)
     : mass(mass), inertia(PolygonMomentOfInertia(mass, vertices)),
-      center(PolygonGravityCenter(vertices)),
+      centroid(PolygonGravityCenter(vertices)),
       position(position), vertices_(vertices) {
   // TODO(wgtdkp): ensure convex polygon
   assert(vertices_.size() >= 3);

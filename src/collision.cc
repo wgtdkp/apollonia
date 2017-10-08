@@ -97,8 +97,8 @@ Arbiter* Collide(Body* pa, Body* pb, Float dt) {
   for (auto& contact : clipped_contacts) {
     auto sep = Dot(contact.position - va, normal);
     if (sep <= 0) {
-      contact.ra = contact.position - a.LocalToWorld(a.center);
-      contact.rb = contact.position - b.LocalToWorld(b.center);
+      contact.ra = contact.position - a.LocalToWorld(a.centroid);
+      contact.rb = contact.position - b.LocalToWorld(b.centroid);
       contact.separation = sep;
       contact.mass_normal = 1 / (a.inv_mass + b.inv_mass + Dot(a.inv_inertia * Cross(Cross(contact.ra, normal), contact.ra) + b.inv_inertia * Cross(Cross(contact.rb, normal), contact.rb), normal));
       

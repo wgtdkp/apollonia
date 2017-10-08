@@ -20,8 +20,8 @@ Arbiter* World::NewArbiter(Body* a, Body* b, size_t idx,
   return new Arbiter(a, b, idx, contacts);
 }
 
-Joint* World::NewJoint(Body* a, Body* b, const Vec2& anchor) {
-  return new Joint(a, b, anchor);
+RevoluteJoint* World::NewRevoluteJoint(Body& a, Body& b, const Vec2& anchor) {
+  return new RevoluteJoint(a, b, anchor);
 }
 
 void World::Step(Float dt) {

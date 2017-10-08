@@ -130,7 +130,7 @@ static void TestJoint() {
 	auto box = World::NewBody(100, {9, 11}, 1, 1);
 	world.Add(box);
 
-  auto joint = World::NewJoint(ground, box, {0, 11});
+  auto joint = World::NewRevoluteJoint(*ground, *box, {0, 11});
 	world.Add(joint);
 }
 
@@ -144,7 +144,7 @@ static void TestChain() {
 	for (int i = 0; i < 15; ++i) {
     auto box = World::NewBody(mass, {0.5f+i, y}, 0.75, 0.25);
     world.Add(box);
-    auto joint = World::NewJoint(last, box, Vec2(i, y));
+    auto joint = World::NewRevoluteJoint(*last, *box, Vec2(i, y));
     world.Add(joint);
     last = box;
 	}
