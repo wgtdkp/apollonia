@@ -123,6 +123,33 @@ static void TestPyramid() {
 	}
 }
 
+static void TestJoint() {
+  auto ground = World::NewBody(kInf, {0, -10}, 100, 20);
+  world.Add(ground);
+  
+	auto box = World::NewBody(100, {9, 11}, 1, 1);
+	world.Add(box);
+
+  auto joint = World::NewJoint(ground, box, {0, 11});
+	world.Add(joint);
+}
+
+static void TestChain() {
+  auto ground = World::NewBody(kInf, {0, -10}, 100, 20);
+  world.Add(ground);
+
+	const Float mass = 10.0f;
+	const Float y = 12.0f;
+  Body* last = ground;
+	for (int i = 0; i < 15; ++i) {
+    auto box = World::NewBody(mass, {0.5f+i, y}, 0.75, 0.25);
+    world.Add(box);
+    auto joint = World::NewJoint(last, box, Vec2(i, y));
+    world.Add(joint);
+    last = box;
+	}
+}
+
 static void Keyboard(unsigned char key, int x, int y) {
   switch (key) {
   case '1':
@@ -136,6 +163,14 @@ static void Keyboard(unsigned char key, int x, int y) {
   case '3':
     world.Clear();
     TestPyramid();
+    break;
+  case '4':
+    world.Clear();
+    TestJoint();
+    break;
+  case '5':
+    world.Clear();
+    TestChain();
     break;
   }
   

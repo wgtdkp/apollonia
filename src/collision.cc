@@ -145,7 +145,7 @@ void Arbiter::ApplyImpulse() {
   // FIXME(wgtdkp): sign
   auto tangent = normal.Normal();
   for (auto& contact : contacts_) {
-    Vec2 dv = b.velocity + Cross(b.angularVelocity, contact.rb) - a.velocity - Cross(a.angularVelocity, contact.ra);
+    Vec2 dv = b.velocity + Cross(b.angular_velocity, contact.rb) - a.velocity - Cross(a.angular_velocity, contact.ra);
 
     auto vn = Dot(dv, normal);
     auto dpn = (-vn + contact.bias) * contact.mass_normal;
@@ -158,9 +158,9 @@ void Arbiter::ApplyImpulse() {
     
     auto p = dpn * normal + dpt * tangent;
     a.velocity -= p * a.inv_mass;
-    a.angularVelocity -= a.inv_inertia * Cross(contact.ra, p);
+    a.angular_velocity -= a.inv_inertia * Cross(contact.ra, p);
     b.velocity += p * b.inv_mass;
-    b.angularVelocity += b.inv_inertia * Cross(contact.rb, p);
+    b.angular_velocity += b.inv_inertia * Cross(contact.rb, p);
     
     contact.pn += dpn;
     contact.pt += dpt;
@@ -179,9 +179,9 @@ void Arbiter::AccumulateImpulse(const Arbiter& old_arbiter) {
       auto tangent = normal.Normal();
       auto p = new_contact.pn * normal + new_contact.pt * tangent;
       a_->velocity -= a_->inv_mass * p;
-      a_->angularVelocity -= a_->inv_inertia * Cross(new_contact.ra, p);
+      a_->angular_velocity -= a_->inv_inertia * Cross(new_contact.ra, p);
       b_->velocity += b_->inv_mass * p;
-      b_->angularVelocity += b_->inv_inertia * Cross(new_contact.rb, p);
+      b_->angular_velocity += b_->inv_inertia * Cross(new_contact.rb, p);
     }
   }
 }

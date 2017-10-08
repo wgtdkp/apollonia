@@ -75,17 +75,18 @@ struct Vec2 {
 struct Mat22 {
  public:
   static const Mat22 I;
+  Mat22() : Mat22(0, 0, 0, 0) {}
   Mat22(const std::array<Vec2, 2>& mat) : mat_(mat) {}
   Mat22(Float a, Float b, Float c, Float d)
       : mat_{{ {a, b}, {c, d} }} {}
   Mat22(Float theta)
       : mat_{{ {cos(theta), -sin(theta)}, {sin(theta), cos(theta)} }} {}
   Float Det() const {
-    return 1 / (mat_[0][0] * mat_[1][1] - mat_[0][1] * mat_[1][0]);
+    return mat_[0][0] * mat_[1][1] - mat_[0][1] * mat_[1][0];
   }
   Mat22 Inv() const {
     auto det = Det();
-    return (1 / det) * (*this);
+    return (1 / det) * Mat22(mat_[1][1], -mat_[0][1], -mat_[1][0], mat_[0][0]);
   }
   Mat22 Transpose() const {
     auto ans = mat_;

@@ -19,7 +19,7 @@ struct Body {
   Vec2  position        {0, 0};
   Mat22 rotation        {Mat22::I};
   Vec2  velocity        {0, 0};
-  Float angularVelocity {0};
+  Float angular_velocity {0};
   Vec2  force           {0, 0};
   Float torque          {0};
   Float friction        {1};

@@ -20,6 +20,10 @@ Arbiter* World::NewArbiter(Body* a, Body* b, size_t idx,
   return new Arbiter(a, b, idx, contacts);
 }
 
+Joint* World::NewJoint(Body* a, Body* b, const Vec2& anchor) {
+  return new Joint(a, b, anchor);
+}
+
 void World::Step(Float dt) {
   for (size_t i = 0; i < bodies_.size(); ++i) {
     for (size_t j = i + 1; j < bodies_.size(); ++j) {
@@ -49,18 +53,25 @@ void World::Step(Float dt) {
       continue;
     }
     body->velocity += (gravity_ + body->force * body->inv_mass) * dt;
-    body->angularVelocity += (body->torque * body->inv_inertia) * dt;
+    body->angular_velocity += (body->torque * body->inv_inertia) * dt;
+  }
+
+  for (auto joint : joints_) {
+    joint->PrevStep(dt);
   }
 
   for (size_t i = 0; i < iterations_; ++i) {
     for (auto& kv : arbiters_) {
       kv.second->ApplyImpulse();
     }
+    for (auto joint : joints_) {
+      joint->ApplyImpulse();
+    }
   }
 
   for (auto body : bodies_) {
     body->position += body->velocity * dt;
-    body->rotation = Mat22(body->angularVelocity * dt) * body->rotation;
+    body->rotation = Mat22(body->angular_velocity * dt) * body->rotation;
     body->force = {0, 0};
     body->torque = 0;
   }
