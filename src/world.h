@@ -1,5 +1,6 @@
 #pragma once
 
+#include "apollonia.h"
 #include "base/math.h"
 #include "collision.h"
 #include "joint.h"
@@ -13,6 +14,10 @@ class Body;
 
 class World {
  public:
+  using BodyList = std::vector<Body*>;
+  using JointList = std::vector<Joint*>;
+  using ArbiterList = std::map<ArbiterKey, Arbiter*>;
+  
   World(const Vec2& gravity) : gravity_(gravity) {}
   ~World();
   static Body* NewBody(Float mass, const Vec2& position,
@@ -22,27 +27,25 @@ class World {
   static Arbiter* NewArbiter(Body& a, Body& b, const Vec2& normal,
       const Arbiter::ContactList& contacts=Arbiter::ContactList());
   static RevoluteJoint* NewRevoluteJoint(Body& a, Body& b, const Vec2& anchor);
-  void Add(Body* body) {
-    bodies_.push_back(body);
-  }
-  void Add(Joint* joint) {
-    joints_.push_back(joint);
-  }
+  
+  void Add(Body* body) { bodies_.push_back(body); }
+  void Add(Joint* joint) { joints_.push_back(joint); }
   const Vec2& gravity() const { return gravity_; }
-  const std::vector<Body*>& bodies() const { return bodies_; }
-  const std::vector<Joint*>& joints() const { return joints_; }
+  const BodyList& bodies() const { return bodies_; }
+  const JointList& joints() const { return joints_; }
 
   void Step(Float dt);
   void Clear();
- private:
-  void BroadPhase();
 
  private:
+  void BroadPhase();
+  DISABLE_COPY_AND_ASSIGN(World)
+  
   Vec2 gravity_ {0, 0};
   size_t iterations_ {10};
-  std::vector<Body*> bodies_;
-  std::vector<Joint*> joints_;
-  std::map<ArbiterKey, Arbiter*> arbiters_;
+  BodyList bodies_;
+  JointList joints_;
+  ArbiterList arbiters_;
 };
 
 }
