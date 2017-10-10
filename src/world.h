@@ -2,6 +2,7 @@
 
 #include "apollonia.h"
 #include "base/math.h"
+#include "body.h"
 #include "collision.h"
 #include "joint.h"
 
@@ -9,8 +10,6 @@
 #include <map>
 
 namespace apollonia {
-
-class Body;
 
 class World {
  public:
@@ -20,10 +19,10 @@ class World {
   
   World(const Vec2& gravity) : gravity_(gravity) {}
   ~World();
-  static Body* NewBody(Float mass, const Vec2& position,
-                       const std::vector<Vec2>& vertices);
-  static Body* NewBody(Float mass, const Vec2& position,
-                       Float width, Float height);
+  static PolygonBody* NewBox(Float mass, Float width, Float height,
+                             const Vec2& position={0, 0});
+  static PolygonBody* NewPolygonBody(Float mass, const PolygonBody::VertexList& vertices,
+                                     const Vec2& position={0, 0});
   static Arbiter* NewArbiter(Body& a, Body& b, const Vec2& normal,
       const Arbiter::ContactList& contacts=Arbiter::ContactList());
   static RevoluteJoint* NewRevoluteJoint(Body& a, Body& b, const Vec2& anchor);

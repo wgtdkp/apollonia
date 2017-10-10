@@ -60,6 +60,7 @@ struct Vec2 {
   const Float& operator[](size_t idx) const {
     return (*const_cast<Vec2*>(this))[idx];
   }
+  Vec2 operator-() const { return {-x, -y}; }
   Float Magnitude() const {
     return sqrt(x * x + y * y);
   }

@@ -39,7 +39,7 @@ static void DrawText(int x, int y, const char* format, ...) {
 	glPopMatrix();
 }
 
-static void DrawBody(const Body& body) {
+static void DrawBody(const PolygonBody& body) {
 	glColor3f(0.8f, 0.8f, 0.0f);
 
   glBegin(GL_LINE_LOOP);
@@ -66,20 +66,21 @@ static void ApolloniaRun() {
   dt = 0.016;
   world.Step(dt);
   for (auto body : world.bodies()) {
-    DrawBody(*body);
+    // TODO(wgtdkp):
+    DrawBody(dynamic_cast<PolygonBody&>(*body));
   }
 
   glutSwapBuffers();
 }
 
 static void Test() {
-  auto fencing = World::NewBody(kInf, {0, -10}, 100, 20);
+  auto fencing = World::NewBox(kInf, 100, 20, {0, -10});
   world.Add(fencing);
   
   Body* body;
-  body = World::NewBody(200, {0, 8}, 2, 2);
+  body = World::NewBox(200, 2, 2, {0, 8});
   //body->velocity = {20, -10};
-  body->rotation = Mat22(kPi / 4);
+  body->set_rotation(kPi / 4);
   world.Add(body);
 }
 
@@ -89,21 +90,21 @@ Float Random(Float low, Float high) {
 
 // A vertical stack
 static void TestStack() {
-  auto fencing = World::NewBody(kInf, {0, -10}, 100, 20);
-	fencing->friction = 0.2f;
+  auto fencing = World::NewBox(kInf, 100, 20, {0, -10});
+	fencing->set_friction(0.2);
 	world.Add(fencing);
 
 	for (int i = 0; i < 10; ++i) {
     Float x = Random(-0.1f, 0.1f);
-    auto body = World::NewBody(1, {x, 0.51f + 1.05f * i}, 1, 1);
-		body->friction = 0.2f;
+    auto body = World::NewBox(1, 1, 1, {x, 0.51f + 1.05f * i});
+		body->set_friction(0.2);
 		world.Add(body);
 	}
 }
 
 static void TestPyramid() {
-  auto fencing = World::NewBody(kInf, {0, -10}, 100, 20);
-	fencing->friction = 0.2f;
+  auto fencing = World::NewBox(kInf, 100, 20, {0, -10});
+	fencing->set_friction(0.2);
   world.Add(fencing);
   
   Vec2 x(-6.0f, 0.75f);
@@ -112,10 +113,9 @@ static void TestPyramid() {
   int n = 10;
 	for (int i = 0; i < n; ++i) {
 		y = x;
-
 		for (int j = i; j < n; ++j) {
-      auto body = World::NewBody(10, y, 1, 1);
-			body->friction = 0.2f;
+      auto body = World::NewBox(10, 1, 1, y);
+			body->set_friction(0.2);
 			world.Add(body);
 			y += Vec2(1.125f, 0.0f);
 		}
@@ -124,10 +124,10 @@ static void TestPyramid() {
 }
 
 static void TestJoint() {
-  auto ground = World::NewBody(kInf, {0, -10}, 100, 20);
+  auto ground = World::NewBox(kInf, 100, 20, {0, -10});
   world.Add(ground);
   
-	auto box = World::NewBody(100, {9, 11}, 1, 1);
+	auto box = World::NewBox(100, 1, 1, {9, 11});
 	world.Add(box);
 
   auto joint = World::NewRevoluteJoint(*ground, *box, {0, 11});
@@ -135,14 +135,14 @@ static void TestJoint() {
 }
 
 static void TestChain() {
-  auto ground = World::NewBody(kInf, {0, -10}, 100, 20);
+  auto ground = World::NewBox(kInf, 100, 20, {0, -10});
   world.Add(ground);
 
 	const Float mass = 10.0f;
 	const Float y = 12.0f;
   Body* last = ground;
 	for (int i = 0; i < 15; ++i) {
-    auto box = World::NewBody(mass, {0.5f+i, y}, 0.75, 0.25);
+    auto box = World::NewBox(mass, 0.75, 0.25, {0.5f+i, y});
     world.Add(box);
     auto joint = World::NewRevoluteJoint(*last, *box, Vec2(i, y));
     world.Add(joint);
@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
   glutInitWindowSize(800, 800);
   glutCreateWindow("Apollonia");
 
-  TestPyramid();
+  TestJoint();
 
   glutReshapeFunc(Reshape);
   glutDisplayFunc(ApolloniaRun);

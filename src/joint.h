@@ -12,7 +12,7 @@ class Joint {
  public:
   friend class World;
   // Prev step before iteration, reduce calculation
-  virtual void PrevStep(Float dt) = 0;
+  virtual void PreStep(Float dt) = 0;
   
   // Apply impluse to produce constrains
   virtual void ApplyImpulse() = 0;
@@ -35,7 +35,7 @@ class Joint {
 class RevoluteJoint : public Joint {
  public:
   friend class World;
-  void PrevStep(Float dt) override;
+  void PreStep(Float dt) override;
   void ApplyImpulse() override;
 
  private:

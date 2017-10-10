@@ -10,9 +10,22 @@ World::~World() {
   Clear();
 }
 
-Body* World::NewBody(Float mass, const Vec2& position,
-                     Float width, Float height) {
-  return new Body(mass, position, width, height);
+PolygonBody* World::NewBox(Float mass,
+    Float width, Float height, const Vec2& position) {
+  PolygonBody::VertexList vertices = {
+    {width/2, height/2}, {-width/2, height/2},
+    {-width/2, -height/2}, {width/2, -height/2}
+  };
+  auto body = new PolygonBody(mass, vertices);
+  body->set_position(position);
+  return body;
+}
+
+PolygonBody* World::NewPolygonBody(Float mass,
+    const PolygonBody::VertexList& vertices, const Vec2& position) {
+  auto body = new PolygonBody(mass, vertices);
+  body->set_position(position);
+  return body;
 }
 
 Arbiter* World::NewArbiter(Body& a, Body& b, const Vec2& normal,
@@ -28,9 +41,9 @@ void World::Step(Float dt) {
   // Collide
   for (size_t i = 0; i < bodies_.size(); ++i) {
     for (size_t j = i + 1; j < bodies_.size(); ++j) {
-      auto& a = *bodies_[i];
-      auto& b = *bodies_[j];
-      if (a.mass == kInf && b.mass == kInf) {
+      auto& a = dynamic_cast<PolygonBody&>(*bodies_[i]);
+      auto& b = dynamic_cast<PolygonBody&>(*bodies_[j]);
+      if (!a.ShouldCollide(b)) {
         continue;
       }
       auto arbiter = Collide(&a, &b, dt);
@@ -51,17 +64,11 @@ void World::Step(Float dt) {
     }
   }
 
-  // Velocity integration
-  for (auto body : bodies_) {
-    if (body->mass == kInf) {
-      continue;
-    }
-    body->velocity += (gravity_ + body->force * body->inv_mass) * dt;
-    body->angular_velocity += (body->torque * body->inv_inertia) * dt;
+  for (auto& kv : arbiters_) {
+    kv.second->PreStep(dt);
   }
-
   for (auto joint : joints_) {
-    joint->PrevStep(dt);
+    joint->PreStep(dt);
   }
 
   // Apply impulse
@@ -74,12 +81,9 @@ void World::Step(Float dt) {
     }
   }
 
-  // Position integration
+  // Integration
   for (auto body : bodies_) {
-    body->position += body->velocity * dt;
-    body->rotation = Mat22(body->angular_velocity * dt) * body->rotation;
-    body->force = {0, 0};
-    body->torque = 0;
+    body->Integrate(gravity_, dt);
   }
 }
 

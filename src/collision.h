@@ -6,6 +6,7 @@
 namespace apollonia {
 
 class Body;
+class PolygonBody;
 class World;
 class ArbiterKey;
 
@@ -21,7 +22,7 @@ struct Contact {
   Float mass_normal;
   Float mass_tangent;
 
-  Contact(const Body& b, size_t idx);
+  Contact(const PolygonBody& b, size_t idx);
 
   bool operator==(const Contact& other) const {
     if (from_a == other.from_a && indices == other.indices) {
@@ -44,6 +45,7 @@ class Arbiter {
   using ContactList = std::vector<Contact>;
   
   bool operator==(const Arbiter& other) const;
+  void PreStep(Float dt);
   void ApplyImpulse();
   void AccumulateImpulse(const Arbiter& old_arbiter);
   void AddContact(const Contact& contact) {
@@ -77,7 +79,6 @@ class ArbiterKey {
   const Body& b_;
 };
 
-
-Arbiter* Collide(Body* a, Body* b, Float dt);
+Arbiter* Collide(PolygonBody* pa, PolygonBody* pb, Float dt);
 
 }
