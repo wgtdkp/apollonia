@@ -41,6 +41,7 @@ void World::Step(Float dt) {
   // Collide
   for (size_t i = 0; i < bodies_.size(); ++i) {
     for (size_t j = i + 1; j < bodies_.size(); ++j) {
+      // TODO(wgtdkp):
       auto& a = dynamic_cast<PolygonBody&>(*bodies_[i]);
       auto& b = dynamic_cast<PolygonBody&>(*bodies_[j]);
       if (!a.ShouldCollide(b)) {

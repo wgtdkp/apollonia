@@ -79,7 +79,6 @@ static void Test() {
   
   Body* body;
   body = World::NewBox(200, 2, 2, {0, 8});
-  //body->velocity = {20, -10};
   body->set_rotation(kPi / 4);
   world.Add(body);
 }
