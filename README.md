@@ -7,7 +7,7 @@ A simplicity-first 2D physics engine.
 - [GLUT]
 
 ## Demo
-- ![](./doc/apollonia-demo.gif)
+- [Stacking, Pyramid, Pendulum, Chain](https://youtu.be/omLzYHL7QQo)
 
 ## Reference
 - [Box2D]
