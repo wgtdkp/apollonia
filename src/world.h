@@ -9,7 +9,7 @@
 
 namespace apollonia {
 
-struct Body;
+class Body;
 
 class World {
  public:
@@ -19,7 +19,7 @@ class World {
                        const std::vector<Vec2>& vertices);
   static Body* NewBody(Float mass, const Vec2& position,
                        Float width, Float height);
-  static Arbiter* NewArbiter(Body* a, Body* b, size_t idx,
+  static Arbiter* NewArbiter(Body& a, Body& b, const Vec2& normal,
       const Arbiter::ContactList& contacts=Arbiter::ContactList());
   static RevoluteJoint* NewRevoluteJoint(Body& a, Body& b, const Vec2& anchor);
   void Add(Body* body) {

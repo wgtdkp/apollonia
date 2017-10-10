@@ -15,9 +15,9 @@ Body* World::NewBody(Float mass, const Vec2& position,
   return new Body(mass, position, width, height);
 }
 
-Arbiter* World::NewArbiter(Body* a, Body* b, size_t idx,
+Arbiter* World::NewArbiter(Body& a, Body& b, const Vec2& normal,
                            const Arbiter::ContactList& contacts) {
-  return new Arbiter(a, b, idx, contacts);
+  return new Arbiter(a, b, normal, contacts);
 }
 
 RevoluteJoint* World::NewRevoluteJoint(Body& a, Body& b, const Vec2& anchor) {
@@ -33,7 +33,7 @@ void World::Step(Float dt) {
       auto arbiter = Collide(bodies_[i], bodies_[j], dt);
       if (arbiter == nullptr) {
         // FIXME(wgtdkp): delete the arbiter
-        arbiters_.erase(ArbiterKey(bodies_[i], bodies_[j]));
+        arbiters_.erase(ArbiterKey(*bodies_[i], *bodies_[j]));
         continue;
       }
       auto iter = arbiters_.find(*arbiter);

@@ -9,7 +9,8 @@ namespace apollonia {
 class World;
 struct Contact;
 
-struct Body {
+class Body {
+ public:
   friend class World;
   Float mass;
   Float inv_mass;

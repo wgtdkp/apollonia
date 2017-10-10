@@ -93,7 +93,7 @@ Arbiter* Collide(Body* pa, Body* pb, Float dt) {
     contacts = clipped_contacts;
   }
 
-  auto arbiter = World::NewArbiter(&a, &b, ia);
+  auto arbiter = World::NewArbiter(a, b, normal);
   for (auto& contact : clipped_contacts) {
     auto sep = Dot(contact.position - va, normal);
     if (sep <= 0) {
@@ -139,28 +139,25 @@ bool Arbiter::operator==(const Arbiter& other) const {
 }
 
 void Arbiter::ApplyImpulse() {
-  auto& a = *a_;
-  auto& b = *b_;
-  auto normal = a.EdgeAt(idx_).Normal();
-  // FIXME(wgtdkp): sign
-  auto tangent = normal.Normal();
+  auto tangent = normal_.Normal();
   for (auto& contact : contacts_) {
-    Vec2 dv = b.velocity + Cross(b.angular_velocity, contact.rb) - a.velocity - Cross(a.angular_velocity, contact.ra);
+    Vec2 dv = (b_.velocity + Cross(b_.angular_velocity, contact.rb)) -
+              (a_.velocity + Cross(a_.angular_velocity, contact.ra));
 
-    auto vn = Dot(dv, normal);
+    auto vn = Dot(dv, normal_);
     auto dpn = (-vn + contact.bias) * contact.mass_normal;
     dpn = std::max(contact.pn + dpn, 0.0f) - contact.pn;
     
-    Float friction = sqrt(a.friction * b.friction);
+    Float friction = sqrt(a_.friction * b_.friction);
     auto vt = Dot(dv, tangent);
     auto dpt = -vt * contact.mass_tangent;
     dpt = std::max(-friction * contact.pn, std::min(friction * contact.pn, contact.pt + dpt)) - contact.pt;
     
-    auto p = dpn * normal + dpt * tangent;
-    a.velocity -= p * a.inv_mass;
-    a.angular_velocity -= a.inv_inertia * Cross(contact.ra, p);
-    b.velocity += p * b.inv_mass;
-    b.angular_velocity += b.inv_inertia * Cross(contact.rb, p);
+    auto p = dpn * normal_ + dpt * tangent;
+    a_.velocity -= p * a_.inv_mass;
+    a_.angular_velocity -= a_.inv_inertia * Cross(contact.ra, p);
+    b_.velocity += p * b_.inv_mass;
+    b_.angular_velocity += b_.inv_inertia * Cross(contact.rb, p);
     
     contact.pn += dpn;
     contact.pt += dpt;
@@ -175,20 +172,21 @@ void Arbiter::AccumulateImpulse(const Arbiter& old_arbiter) {
       new_contact.pn = old_contact->pn;
       new_contact.pt = old_contact->pt;
 
-      auto normal = a_->EdgeAt(idx_).Normal();
-      auto tangent = normal.Normal();
-      auto p = new_contact.pn * normal + new_contact.pt * tangent;
-      a_->velocity -= a_->inv_mass * p;
-      a_->angular_velocity -= a_->inv_inertia * Cross(new_contact.ra, p);
-      b_->velocity += b_->inv_mass * p;
-      b_->angular_velocity += b_->inv_inertia * Cross(new_contact.rb, p);
+      auto tangent = normal_.Normal();
+      auto p = new_contact.pn * normal_ + new_contact.pt * tangent;
+      a_.velocity -= a_.inv_mass * p;
+      a_.angular_velocity -= a_.inv_inertia * Cross(new_contact.ra, p);
+      b_.velocity += b_.inv_mass * p;
+      b_.angular_velocity += b_.inv_inertia * Cross(new_contact.rb, p);
     }
   }
 }
 
 bool ArbiterKey::operator<(const ArbiterKey& other) const {
-  auto a1 = this->a_, b1 = this->b_;
-  auto a2 = other.a_, b2 = other.b_;
+  auto a1 = &this->a_;
+  auto b1 = &this->b_;
+  auto a2 = &other.a_;
+  auto b2 = &other.b_;
   if (a1 > b1) {
     std::swap(a1, b1);
   }

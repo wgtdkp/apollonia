@@ -6,7 +6,7 @@
 namespace apollonia {
 
 class World;
-struct Body;
+class Body;
 
 class Joint {
  public:

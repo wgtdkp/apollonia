@@ -5,7 +5,7 @@
 
 namespace apollonia {
 
-struct Body;
+class Body;
 class World;
 class ArbiterKey;
 
@@ -52,17 +52,17 @@ class Arbiter {
   }
 
  private:
-  Arbiter(Body* a, Body* b, size_t idx, const ContactList& contacts)
-      : a_(a), b_(b), idx_(idx), contacts_(contacts) {}
-  Body* a_;
-  Body* b_;
-  size_t idx_;
+  Arbiter(Body& a, Body& b, const Vec2& normal, const ContactList& contacts)
+      : a_(a), b_(b), normal_(normal), contacts_(contacts) {}
+  Body& a_;
+  Body& b_;
+  Vec2 normal_;
   ContactList contacts_;
 };
 
 class ArbiterKey {
  public:
-  ArbiterKey(const Body* a, const Body* b) : a_(a), b_(b) {}
+  ArbiterKey(const Body& a, const Body& b) : a_(a), b_(b) {}
   ArbiterKey(const Arbiter& arbiter) : ArbiterKey(arbiter.a_, arbiter.b_) {}
   bool operator<(const ArbiterKey& other) const;
   bool operator==(const ArbiterKey& other) const {
@@ -73,8 +73,8 @@ class ArbiterKey {
   }
 
  private:
-  const Body* a_;
-  const Body* b_;
+  const Body& a_;
+  const Body& b_;
 };
 
 
