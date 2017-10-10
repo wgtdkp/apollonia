@@ -72,7 +72,6 @@ Arbiter* Collide(Body* pa, Body* pb, Float dt) {
 
   auto va = a.LocalToWorld(a[ia]);
   auto normal = a.EdgeAt(ia).Normal();
-  // FIXME(wgtdkp): sign
   auto tangent = normal.Normal();
 
   auto idx = FindIncidentEdge(normal, b);

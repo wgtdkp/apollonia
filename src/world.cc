@@ -25,19 +25,22 @@ RevoluteJoint* World::NewRevoluteJoint(Body& a, Body& b, const Vec2& anchor) {
 }
 
 void World::Step(Float dt) {
+  // Collide
   for (size_t i = 0; i < bodies_.size(); ++i) {
     for (size_t j = i + 1; j < bodies_.size(); ++j) {
-      if (bodies_[i]->mass == kInf && bodies_[j]->mass == kInf) {
+      auto& a = *bodies_[i];
+      auto& b = *bodies_[j];
+      if (a.mass == kInf && b.mass == kInf) {
         continue;
       }
-      auto arbiter = Collide(bodies_[i], bodies_[j], dt);
+      auto arbiter = Collide(&a, &b, dt);
+      auto iter = arbiters_.find({a, b});
       if (arbiter == nullptr) {
-        // FIXME(wgtdkp): delete the arbiter
-        arbiters_.erase(ArbiterKey(*bodies_[i], *bodies_[j]));
-        continue;
-      }
-      auto iter = arbiters_.find(*arbiter);
-      if (iter == arbiters_.end()) {
+        if (iter != arbiters_.end()) {
+          delete iter->second;
+          arbiters_.erase(iter);
+        }
+      } else if (iter == arbiters_.end()) {
         arbiters_[*arbiter] = arbiter;
       } else {
         auto& old_arbiter = iter->second;
@@ -48,6 +51,7 @@ void World::Step(Float dt) {
     }
   }
 
+  // Velocity integration
   for (auto body : bodies_) {
     if (body->mass == kInf) {
       continue;
@@ -60,6 +64,7 @@ void World::Step(Float dt) {
     joint->PrevStep(dt);
   }
 
+  // Apply impulse
   for (size_t i = 0; i < iterations_; ++i) {
     for (auto& kv : arbiters_) {
       kv.second->ApplyImpulse();
@@ -69,14 +74,13 @@ void World::Step(Float dt) {
     }
   }
 
+  // Position integration
   for (auto body : bodies_) {
     body->position += body->velocity * dt;
     body->rotation = Mat22(body->angular_velocity * dt) * body->rotation;
     body->force = {0, 0};
     body->torque = 0;
   }
-
-  // TODO(wgtdkp): loop joints
 }
 
 void World::Clear() {
