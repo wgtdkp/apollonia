@@ -41,13 +41,27 @@ static void DrawText(int x, int y, const char* format, ...) {
 
 static void DrawBody(const PolygonBody& body) {
 	glColor3f(0.8f, 0.8f, 0.0f);
-
   glBegin(GL_LINE_LOOP);
   for (size_t i = 0; i < body.Count(); ++i) {
     auto point = body.LocalToWorld(body[i]);
 	  glVertex2f(point.x, point.y);
   }
 	glEnd();
+}
+
+static void DrawJoint(const RevoluteJoint& joint) {
+  auto centroida = joint.a().LocalToWorld(joint.a().centroid());
+  auto anchora = joint.WorldAnchorA();
+  auto centroidb = joint.b().LocalToWorld(joint.b().centroid());
+  auto anchorb = joint.WorldAnchorB();
+
+  glColor3f(1, 1, 1);
+  glBegin(GL_LINES);
+  glVertex2f(centroida.x, centroida.y);
+  glVertex2f(anchora.x, anchora.y);
+  glVertex2f(centroidb.x, centroidb.y);
+  glVertex2f(anchorb.x, anchorb.y);
+  glEnd();
 }
 
 static void ApolloniaRun() {
@@ -70,10 +84,14 @@ static void ApolloniaRun() {
     DrawBody(dynamic_cast<PolygonBody&>(*body));
   }
 
+  for (auto joint : world.joints()) {
+    DrawJoint(dynamic_cast<RevoluteJoint&>(*joint));
+  }
+
   glutSwapBuffers();
 }
 
-static void Test() {
+static void TestPolygon() {
   auto fencing = World::NewBox(kInf, 100, 20, {0, -10});
   world.Add(fencing);
   
@@ -153,7 +171,7 @@ static void Keyboard(unsigned char key, int x, int y) {
   switch (key) {
   case '1':
     world.Clear();
-    Test();
+    TestPolygon();
     break;
   case '2':
     world.Clear();

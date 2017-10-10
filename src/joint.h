@@ -2,11 +2,11 @@
 
 #include "apollonia.h"
 #include "base/math.h"
+#include "body.h"
 
 namespace apollonia {
 
 class World;
-class Body;
 
 class Joint {
  public:
@@ -38,12 +38,23 @@ class RevoluteJoint : public Joint {
   void PreStep(Float dt) override;
   void ApplyImpulse() override;
 
+  const Vec2& anchor() const { return anchor_; }
+  Vec2 WorldAnchorA() const {
+    return a().LocalToWorld(a().rotation() * local_anchor_a_ + a().centroid());
+  }
+  Vec2 WorldAnchorB() const {
+    return b().LocalToWorld(b().rotation() * local_anchor_b_ + b().centroid());
+  }
+
  private:
   RevoluteJoint(Body& a, Body& b, const Vec2& anchor);
   DISABLE_COPY_AND_ASSIGN(RevoluteJoint)
 
+  // World anchor
   Vec2 anchor_;
+  // Local anchor relative to centroid of body a
   Vec2 local_anchor_a_;
+  // Local anchor relative to centroid of body b
   Vec2 local_anchor_b_;
 
   // Cached status in prev step
