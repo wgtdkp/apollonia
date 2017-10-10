@@ -92,13 +92,12 @@ static void ApolloniaRun() {
 }
 
 static void TestPolygon() {
-  auto fencing = World::NewBox(kInf, 100, 20, {0, -10});
-  world.Add(fencing);
-  
-  Body* body;
-  body = World::NewBox(200, 2, 2, {0, 8});
-  body->set_rotation(kPi / 4);
-  world.Add(body);
+  auto ground = World::NewBox(kInf, 100, 20, {0, -10});
+  world.Add(ground);
+
+  world.Add(World::NewPolygonBody(200, {{-1, 0}, {1, 0}, {0, 1}}, {-1, 0}));
+  world.Add(World::NewPolygonBody(200, {{-1, 0}, {1, 0}, {0, 1}}, {1, 0}));
+  world.Add(World::NewBox(200, 3, 6, {0, 8}));
 }
 
 Float Random(Float low, Float high) {
@@ -144,11 +143,15 @@ static void TestJoint() {
   auto ground = World::NewBox(kInf, 100, 20, {0, -10});
   world.Add(ground);
   
-	auto box = World::NewBox(100, 1, 1, {9, 11});
-	world.Add(box);
-
-  auto joint = World::NewRevoluteJoint(*ground, *box, {0, 11});
-	world.Add(joint);
+	auto box1 = World::NewBox(100, 1, 1, {9, 11});
+	world.Add(box1);
+  auto joint1 = World::NewRevoluteJoint(*ground, *box1, {0, 11});
+  world.Add(joint1);
+  
+  auto box2 = World::NewBox(100, 1, 1, {-1, 2});
+  world.Add(box2);
+  auto joint2 = World::NewRevoluteJoint(*ground, *box2, {-1, 11});
+  world.Add(joint2);
 }
 
 static void TestChain() {

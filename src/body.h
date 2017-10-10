@@ -62,8 +62,8 @@ class Body {
   Float friction() const { return friction_; }
   void set_friction(Float friction) { friction_ = friction; }
 
-  Float bouncy() const { return bouncy_; }
-  void set_bouncy(Float bouncy) { bouncy_ = bouncy; }
+  Float bounce() const { return bounce_; }
+  void set_bounce(Float bounce) { bounce_ = bounce; }
 
  protected:
   Body(Float mass) { set_mass(mass); }
@@ -86,7 +86,7 @@ class Body {
   Vec2  force_            {0, 0};
   Float torque_           {0};
   Float friction_         {1};
-  Float bouncy_           {0};
+  Float bounce_           {0};
 };
 
 class PolygonBody : public Body {
