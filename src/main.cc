@@ -9,7 +9,7 @@
 using namespace apollonia;
 using namespace std::chrono;
 static time_point<high_resolution_clock> last_clock = high_resolution_clock::now();
-static World world({0.0f, -10.0f});
+static World world({0, -9.8});
 
 static void DrawText(int x, int y, const char* format, ...) {
 	glMatrixMode(GL_PROJECTION);
@@ -40,7 +40,11 @@ static void DrawText(int x, int y, const char* format, ...) {
 }
 
 static void DrawBody(const PolygonBody& body) {
-	glColor3f(0.8f, 0.8f, 0.0f);
+  if (body.mass() == kInf) {
+    glColor3f(1, 1, 1);
+  } else {
+    glColor3f(0.8, 0.8, 0);
+  }
   glBegin(GL_LINE_LOOP);
   for (size_t i = 0; i < body.Count(); ++i) {
     auto point = body.LocalToWorld(body[i]);
@@ -55,12 +59,16 @@ static void DrawJoint(const RevoluteJoint& joint) {
   auto centroidb = joint.b().LocalToWorld(joint.b().centroid());
   auto anchorb = joint.WorldAnchorB();
 
-  glColor3f(1, 1, 1);
+  glColor3f(0.6, 0.6, 0.6);
   glBegin(GL_LINES);
-  glVertex2f(centroida.x, centroida.y);
-  glVertex2f(anchora.x, anchora.y);
-  glVertex2f(centroidb.x, centroidb.y);
-  glVertex2f(anchorb.x, anchorb.y);
+  if (joint.a().mass() != kInf) {
+    glVertex2f(centroida.x, centroida.y);
+    glVertex2f(anchora.x, anchora.y);
+  }
+  if (joint.b().mass() != kInf) {
+    glVertex2f(centroidb.x, centroidb.y);
+    glVertex2f(anchorb.x, anchorb.y);
+  }
   glEnd();
 }
 
@@ -68,7 +76,7 @@ static void ApolloniaRun() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  glTranslatef(0.0f, -7.0f, -25.0f);
+  glTranslatef(0.0f, -8.0f, -25.0f);
 
   auto now = high_resolution_clock::now();
   auto dt = duration_cast<duration<double>>(now - last_clock).count();
@@ -77,7 +85,6 @@ static void ApolloniaRun() {
   int h = glutGet(GLUT_WINDOW_HEIGHT);
   DrawText(5, h - 20, "dt: %.2f ms", dt * 1000);
 
-  dt = 0.016;
   world.Step(dt);
   for (auto body : world.bodies()) {
     // TODO(wgtdkp):
@@ -91,10 +98,17 @@ static void ApolloniaRun() {
   glutSwapBuffers();
 }
 
-static void TestPolygon() {
-  auto ground = World::NewBox(kInf, 100, 20, {0, -10});
+static PolygonBody* CreateFencing() {
+  auto ground = World::NewBox(kInf, 20, 1, {0, -0.5});
   world.Add(ground);
+  world.Add(World::NewBox(kInf, 20, 1, {0, 16.5}));
+  world.Add(World::NewBox(kInf, 1, 18, {-9.5, 8}));
+  world.Add(World::NewBox(kInf, 1, 18, {9.5, 8}));
+  return ground;
+}
 
+static void TestPolygon() {
+  CreateFencing();
   world.Add(World::NewPolygonBody(200, {{-1, 0}, {1, 0}, {0, 1}}, {-1, 0}));
   world.Add(World::NewPolygonBody(200, {{-1, 0}, {1, 0}, {0, 1}}, {1, 0}));
   world.Add(World::NewBox(200, 3, 6, {0, 8}));
@@ -106,10 +120,7 @@ Float Random(Float low, Float high) {
 
 // A vertical stack
 static void TestStack() {
-  auto fencing = World::NewBox(kInf, 100, 20, {0, -10});
-	fencing->set_friction(0.2);
-	world.Add(fencing);
-
+  CreateFencing();
 	for (int i = 0; i < 10; ++i) {
     Float x = Random(-0.1f, 0.1f);
     auto body = World::NewBox(1, 1, 1, {x, 0.51f + 1.05f * i});
@@ -119,13 +130,9 @@ static void TestStack() {
 }
 
 static void TestPyramid() {
-  auto fencing = World::NewBox(kInf, 100, 20, {0, -10});
-	fencing->set_friction(0.2);
-  world.Add(fencing);
-  
+  CreateFencing();
   Vec2 x(-6.0f, 0.75f);
 	Vec2 y;
-
   int n = 10;
 	for (int i = 0; i < n; ++i) {
 		y = x;
@@ -135,7 +142,7 @@ static void TestPyramid() {
 			world.Add(body);
 			y += Vec2(1.125f, 0.0f);
 		}
-		x += Vec2(0.5625f, 2.0f);
+		x += Vec2(0.5625f, 1.5f);
 	}
 }
 
@@ -143,19 +150,22 @@ static void TestJoint() {
   auto ground = World::NewBox(kInf, 100, 20, {0, -10});
   world.Add(ground);
   
-	auto box1 = World::NewBox(100, 1, 1, {9, 11});
+	auto box1 = World::NewBox(500, 1, 1, {13.5, 11});
 	world.Add(box1);
-  auto joint1 = World::NewRevoluteJoint(*ground, *box1, {0, 11});
+  auto joint1 = World::NewRevoluteJoint(*ground, *box1, {4.5, 11});
   world.Add(joint1);
   
-  auto box2 = World::NewBox(100, 1, 1, {-1, 2});
-  world.Add(box2);
-  auto joint2 = World::NewRevoluteJoint(*ground, *box2, {-1, 11});
-  world.Add(joint2);
+  for (size_t i = 0; i < 5; ++i) {
+    auto box2 = World::NewBox(100, 1, 1, {3.5f-i, 2});
+    world.Add(box2);
+    auto joint2 = World::NewRevoluteJoint(*ground, *box2, {3.5f-i, 11});
+    world.Add(joint2);
+  }
 }
 
 static void TestChain() {
   auto ground = World::NewBox(kInf, 100, 20, {0, -10});
+  ground->set_friction(0.4);
   world.Add(ground);
 
 	const Float mass = 10.0f;
@@ -163,6 +173,7 @@ static void TestChain() {
   Body* last = ground;
 	for (int i = 0; i < 15; ++i) {
     auto box = World::NewBox(mass, 0.75, 0.25, {0.5f+i, y});
+    box->set_friction(0.4);
     world.Add(box);
     auto joint = World::NewRevoluteJoint(*last, *box, Vec2(i, y));
     world.Add(joint);

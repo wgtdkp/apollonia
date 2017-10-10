@@ -7,7 +7,7 @@ A simplicity-first 2D physics engine.
 - [GLUT]
 
 ## Demo
-- ![](./doc/apollonia-0.gif)
+- ![](./doc/apollonia-demo.mp4)
 
 ## Reference
 - [Box2D]
