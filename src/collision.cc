@@ -94,30 +94,29 @@ Arbiter* Collide(PolygonBody* pa, PolygonBody* pb, Float dt) {
   auto arbiter = World::NewArbiter(a, b, normal);
   for (auto& contact : clipped_contacts) {
     auto sep = Dot(contact.position - va, normal);
-    if (sep <= 0) {
-      contact.ra = contact.position - a.LocalToWorld(a.centroid());
-      contact.rb = contact.position - b.LocalToWorld(b.centroid());
-      contact.separation = sep;
-      auto kn = a.inv_mass() + b.inv_mass() +
-                Dot(a.inv_inertia() * Cross(Cross(contact.ra, normal), contact.ra) +
-                    b.inv_inertia() * Cross(Cross(contact.rb, normal), contact.rb), normal);
-      auto kt = a.inv_mass() + b.inv_mass() +
-                Dot(a.inv_inertia() * Cross(Cross(contact.ra, tangent), contact.ra) +
-                    b.inv_inertia() * Cross(Cross(contact.rb, tangent), contact.rb), tangent);
-      contact.mass_normal = 1 / kn;
-      contact.mass_tangent = 1 / kt;
-            
-      contact.bias = -kBiasFactor / dt * std::min(0.0f, contact.separation + kAllowedPenetration);
-      arbiter->AddContact(contact);
-
-      glPointSize(4.0f);
-      glColor3f(1.0f, 0.0f, 0.0f);
-      glBegin(GL_POINTS);
-      glVertex2f(contact.position.x, contact.position.y);
-      glEnd();
-      glPointSize(1.0f);
-
+    if (sep > 0) {
+      continue;
     }
+    contact.ra = contact.position - a.LocalToWorld(a.centroid());
+    contact.rb = contact.position - b.LocalToWorld(b.centroid());
+    contact.separation = sep;
+    auto kn = a.inv_mass() + b.inv_mass() +
+              Dot(a.inv_inertia() * Cross(Cross(contact.ra, normal), contact.ra) +
+                  b.inv_inertia() * Cross(Cross(contact.rb, normal), contact.rb), normal);
+    auto kt = a.inv_mass() + b.inv_mass() +
+              Dot(a.inv_inertia() * Cross(Cross(contact.ra, tangent), contact.ra) +
+                  b.inv_inertia() * Cross(Cross(contact.rb, tangent), contact.rb), tangent);
+    contact.mass_normal = 1 / kn;
+    contact.mass_tangent = 1 / kt;
+    contact.bias = -kBiasFactor / dt * std::min(0.0f, contact.separation + kAllowedPenetration);
+    arbiter->AddContact(contact);
+
+    glPointSize(4.0f);
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glBegin(GL_POINTS);
+    glVertex2f(contact.position.x, contact.position.y);
+    glEnd();
+    glPointSize(1.0f);
   }
   return arbiter;
 }
