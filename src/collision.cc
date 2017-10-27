@@ -51,8 +51,6 @@ static size_t Clip(Arbiter::ContactList& contacts_out,
 }
 
 Arbiter* Collide(PolygonBody* pa, PolygonBody* pb, Float dt) {
-  static const Float kAllowedPenetration = 0.01;
-  static const Float kBiasFactor = 0.2;
   size_t ia, ib;
   Float sa, sb;
   if ((sa = pa->FindMinSeparatingAxis(ia, *pb)) >= 0) {
@@ -68,11 +66,7 @@ Arbiter* Collide(PolygonBody* pa, PolygonBody* pb, Float dt) {
   }
   auto& a = *pa;
   auto& b = *pb;
-
-  auto va = a.LocalToWorld(a[ia]);
   auto normal = a.EdgeAt(ia).Normal();
-  auto tangent = normal.Normal();
-
   auto idx = FindIncidentEdge(normal, b);
   auto next_idx = (idx + 1) % b.Count();
   Arbiter::ContactList contacts = {{b, idx}, {b, next_idx}};
@@ -91,32 +85,16 @@ Arbiter* Collide(PolygonBody* pa, PolygonBody* pb, Float dt) {
     contacts = clipped_contacts;
   }
 
+  auto va = a.LocalToWorld(a[ia]);
   auto arbiter = World::NewArbiter(a, b, normal);
   for (auto& contact : clipped_contacts) {
     auto sep = Dot(contact.position - va, normal);
-    if (sep > 0) {
-      continue;
+    if (sep <= 0) {
+      contact.separation = sep;
+      contact.ra = contact.position - a.LocalToWorld(a.centroid());
+      contact.rb = contact.position - b.LocalToWorld(b.centroid());
+      arbiter->AddContact(contact);
     }
-    contact.ra = contact.position - a.LocalToWorld(a.centroid());
-    contact.rb = contact.position - b.LocalToWorld(b.centroid());
-    contact.separation = sep;
-    auto kn = a.inv_mass() + b.inv_mass() +
-              Dot(a.inv_inertia() * Cross(Cross(contact.ra, normal), contact.ra) +
-                  b.inv_inertia() * Cross(Cross(contact.rb, normal), contact.rb), normal);
-    auto kt = a.inv_mass() + b.inv_mass() +
-              Dot(a.inv_inertia() * Cross(Cross(contact.ra, tangent), contact.ra) +
-                  b.inv_inertia() * Cross(Cross(contact.rb, tangent), contact.rb), tangent);
-    contact.mass_normal = 1 / kn;
-    contact.mass_tangent = 1 / kt;
-    contact.bias = -kBiasFactor / dt * std::min(0.0f, contact.separation + kAllowedPenetration);
-    arbiter->AddContact(contact);
-
-    glPointSize(4.0f);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    glBegin(GL_POINTS);
-    glVertex2f(contact.position.x, contact.position.y);
-    glEnd();
-    glPointSize(1.0f);
   }
   return arbiter;
 }
@@ -141,7 +119,27 @@ bool Arbiter::operator==(const Arbiter& other) const {
 }
 
 void Arbiter::PreStep(Float dt) {
+  static const Float kAllowedPenetration = 0.01;
+  static const Float kBiasFactor = 0.2;
+  auto tangent = normal_.Normal();
+  for (auto& contact : contacts_) {
+    auto kn = a_.inv_mass() + b_.inv_mass() +
+              Dot(a_.inv_inertia() * Cross(Cross(contact.ra, normal_), contact.ra) +
+                  b_.inv_inertia() * Cross(Cross(contact.rb, normal_), contact.rb), normal_);
+    auto kt = a_.inv_mass() + b_.inv_mass() +
+              Dot(a_.inv_inertia() * Cross(Cross(contact.ra, tangent), contact.ra) +
+                  b_.inv_inertia() * Cross(Cross(contact.rb, tangent), contact.rb), tangent);
+    contact.mass_normal = 1 / kn;
+    contact.mass_tangent = 1 / kt;
+    contact.bias = -kBiasFactor / dt * std::min(0.0f, contact.separation + kAllowedPenetration);
 
+    glPointSize(4.0f);
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glBegin(GL_POINTS);
+    glVertex2f(contact.position.x, contact.position.y);
+    glEnd();
+    glPointSize(1.0f);
+  }
 }
 
 void Arbiter::ApplyImpulse() {
