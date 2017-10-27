@@ -9,13 +9,6 @@ namespace apollonia {
 class World;
 struct Contact;
 
-/*
-enum class BodyType : char {
-  kStatic,
-  kDynamic
-};
-*/
-
 class Body {
  public:
   friend class World;
