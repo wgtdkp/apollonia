@@ -50,7 +50,7 @@ static size_t Clip(Arbiter::ContactList& contacts_out,
   return num_out;
 }
 
-Arbiter* Collide(PolygonBody* pa, PolygonBody* pb, Float dt) {
+Arbiter* Collide(PolygonBody* pa, PolygonBody* pb) {
   size_t ia, ib;
   Float sa, sb;
   if ((sa = pa->FindMinSeparatingAxis(ia, *pb)) >= 0) {

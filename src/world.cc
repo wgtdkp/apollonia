@@ -47,7 +47,7 @@ void World::Step(Float dt) {
       if (!a.ShouldCollide(b)) {
         continue;
       }
-      auto arbiter = Collide(&a, &b, dt);
+      auto arbiter = Collide(&a, &b);
       auto iter = arbiters_.find({a, b});
       if (arbiter == nullptr) {
         if (iter != arbiters_.end()) {

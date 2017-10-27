@@ -79,6 +79,6 @@ class ArbiterKey {
   const Body& b_;
 };
 
-Arbiter* Collide(PolygonBody* pa, PolygonBody* pb, Float dt);
+Arbiter* Collide(PolygonBody* pa, PolygonBody* pb);
 
 }
