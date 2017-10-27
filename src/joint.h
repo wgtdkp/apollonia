@@ -14,7 +14,7 @@ class Joint {
   // Prev step before iteration, reduce calculation
   virtual void PreStep(Float dt) = 0;
   
-  // Apply impluse to produce constrains
+  // Apply impluse to maintain constrains
   virtual void ApplyImpulse() = 0;
   
   Body& a() { return a_; }
@@ -62,7 +62,7 @@ class RevoluteJoint : public Joint {
   Vec2 ra_;
   // Anchor point to body b' centroid
   Vec2 rb_;
-  // The conbined mass
+  // The combined mass
   Mat22 mass_;
   // Accumulated impulse
   Vec2 p_;
