@@ -12,17 +12,17 @@ static time_point<high_resolution_clock> last_clock = high_resolution_clock::now
 static World world({0, -9.8});
 
 static void DrawText(int x, int y, const char* format, ...) {
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	int w = glutGet(GLUT_WINDOW_WIDTH);
-	int h = glutGet(GLUT_WINDOW_HEIGHT);
-	gluOrtho2D(0, w, h, 0);
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  int w = glutGet(GLUT_WINDOW_WIDTH);
+  int h = glutGet(GLUT_WINDOW_HEIGHT);
+  gluOrtho2D(0, w, h, 0);
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
 
-	glColor3f(0.9f, 0.9f, 0.9f);
+  glColor3f(0.9f, 0.9f, 0.9f);
   glRasterPos2i(x, y);
   
   char buffer[256];
@@ -34,9 +34,9 @@ static void DrawText(int x, int y, const char* format, ...) {
     glutBitmapCharacter(GLUT_BITMAP_9_BY_15, buffer[i]);
   }
 
-	glPopMatrix();
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
 }
 
 static void DrawBody(const PolygonBody& body) {
@@ -48,9 +48,9 @@ static void DrawBody(const PolygonBody& body) {
   glBegin(GL_LINE_LOOP);
   for (size_t i = 0; i < body.Count(); ++i) {
     auto point = body.LocalToWorld(body[i]);
-	  glVertex2f(point.x, point.y);
+    glVertex2f(point.x, point.y);
   }
-	glEnd();
+  glEnd();
 }
 
 static void DrawJoint(const RevoluteJoint& joint) {
@@ -121,37 +121,37 @@ Float Random(Float low, Float high) {
 // A vertical stack
 static void TestStack() {
   CreateFencing();
-	for (int i = 0; i < 10; ++i) {
+  for (int i = 0; i < 10; ++i) {
     Float x = Random(-0.1f, 0.1f);
     auto body = World::NewBox(1, 1, 1, {x, 0.51f + 1.05f * i});
-		body->set_friction(0.2);
-		world.Add(body);
-	}
+    body->set_friction(0.2);
+    world.Add(body);
+  }
 }
 
 static void TestPyramid() {
   CreateFencing();
   Vec2 x(-6.0f, 0.75f);
-	Vec2 y;
+  Vec2 y;
   int n = 10;
-	for (int i = 0; i < n; ++i) {
-		y = x;
-		for (int j = i; j < n; ++j) {
+  for (int i = 0; i < n; ++i) {
+    y = x;
+    for (int j = i; j < n; ++j) {
       auto body = World::NewBox(10, 1, 1, y);
-			body->set_friction(0.2);
-			world.Add(body);
-			y += Vec2(1.125f, 0.0f);
-		}
-		x += Vec2(0.5625f, 1.5f);
-	}
+      body->set_friction(0.2);
+      world.Add(body);
+      y += Vec2(1.125f, 0.0f);
+    }
+    x += Vec2(0.5625f, 1.5f);
+  }
 }
 
 static void TestJoint() {
   auto ground = World::NewBox(kInf, 100, 20, {0, -10});
   world.Add(ground);
   
-	auto box1 = World::NewBox(500, 1, 1, {13.5, 11});
-	world.Add(box1);
+  auto box1 = World::NewBox(500, 1, 1, {13.5, 11});
+  world.Add(box1);
   auto joint1 = World::NewRevoluteJoint(*ground, *box1, {4.5, 11});
   world.Add(joint1);
   
@@ -168,17 +168,17 @@ static void TestChain() {
   ground->set_friction(0.4);
   world.Add(ground);
 
-	const Float mass = 10.0f;
-	const Float y = 12.0f;
+  const Float mass = 10.0f;
+  const Float y = 12.0f;
   Body* last = ground;
-	for (int i = 0; i < 15; ++i) {
+  for (int i = 0; i < 15; ++i) {
     auto box = World::NewBox(mass, 0.75, 0.25, {0.5f+i, y});
     box->set_friction(0.4);
     world.Add(box);
     auto joint = World::NewRevoluteJoint(*last, *box, Vec2(i, y));
     world.Add(joint);
     last = box;
-	}
+  }
 }
 
 static void Keyboard(unsigned char key, int x, int y) {
