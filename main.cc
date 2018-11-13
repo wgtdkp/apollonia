@@ -2,32 +2,28 @@
 #include "collision.h"
 #include "joint.h"
 #include "world.h"
-#include <chrono>
 
-#ifdef __APPLE__
-# include <GLUT/glut.h>
-#elif __linux__
-# include <GL/glut.h>
-#elif _WIN32
-# include <gl/glut.h>
-#else
-# error unsupported platform! run on mac os/linux/windows.
-#endif
+#include <GLFW/glfw3.h>
+#include <chrono>
+#include <iostream>
+#include <string>
 
 using namespace apollonia;
-using namespace std::chrono;
-static time_point<high_resolution_clock> last_clock = high_resolution_clock::now();
+
 static World world({0, -9.8});
 static constexpr int win_width = 800;
 static constexpr int win_height = 800;
+static GLFWwindow* window = nullptr;
 
+/*
 static void DrawText(int x, int y, const char* format, ...) {
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
-  int w = glutGet(GLUT_WINDOW_WIDTH);
-  int h = glutGet(GLUT_WINDOW_HEIGHT);
-  gluOrtho2D(0, w, h, 0);
+  int width, height;
+  glfwGetWindowSize(window, &width, &height);
+
+  glOrtho(0, width, height, 0, -1, 1);
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
   glLoadIdentity();
@@ -41,13 +37,14 @@ static void DrawText(int x, int y, const char* format, ...) {
   int len = vsprintf(buffer, format, args);
   va_end(args);
   for (int i = 0; i < len; ++i) {
-    glutBitmapCharacter(GLUT_BITMAP_9_BY_15, buffer[i]);
+    glfw(GLUT_BITMAP_9_BY_15, buffer[i]);
   }
 
   glPopMatrix();
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();
 }
+*/
 
 static void DrawBody(const PolygonBody& body) {
   if (body.mass() == kInf) {
@@ -83,34 +80,36 @@ static void DrawJoint(const RevoluteJoint& joint) {
 }
 
 static void ApolloniaRun() {
-  // If macos-version > 10.13
-  static int _ = (glutReshapeWindow(win_width, win_height), 0);
-  (void)_;
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  using namespace std::chrono;
+  static auto last_clock = high_resolution_clock::now();
+  glViewport(0, -win_height/4, win_width, win_height);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(-20, 20, -20, 20, -1, 1);
+
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  glTranslatef(0.0f, -8.0f, -25.0f);
+
+  //glTranslatef(0.0f, -8.0f, -25.0f);
 
   auto now = high_resolution_clock::now();
   auto dt = duration_cast<duration<double>>(now - last_clock).count();
   last_clock = now;
 
-  int h = glutGet(GLUT_WINDOW_HEIGHT);
-  DrawText(5, h - 20, "dt: %.2f ms", dt * 1000);
-
+  auto title = std::string("apollonia - fps:") + std::to_string((int) (dt * 10000) / 10.0);
+  glfwSetWindowTitle(window, title.c_str());
+  std::cout << "dt: " << dt << std::endl;
   world.Step(dt);
+
+  glClear(GL_COLOR_BUFFER_BIT);
   for (auto body : world.bodies()) {
     // TODO(wgtdkp):
     DrawBody(dynamic_cast<PolygonBody&>(*body));
   }
-
   for (auto joint : world.joints()) {
     DrawJoint(dynamic_cast<RevoluteJoint&>(*joint));
   }
-
-  glutSwapBuffers();
-  // If macos-version > 10.13
-  glutPostRedisplay();
+  glfwSwapBuffers(window);
 }
 
 static PolygonBody* CreateFencing() {
@@ -196,7 +195,8 @@ static void TestChain() {
   }
 }
 
-static void Keyboard(unsigned char key, int x, int y) {
+static void Keyboard(GLFWwindow* window,
+    int key, int scancode, int action, int mods) {
   switch (key) {
   case '1':
     world.Clear();
@@ -225,13 +225,15 @@ static void Mouse(int button, int state, int x, int y) {
 
 }
 
+/*
 static void Reshape(int width, int height) {
   glViewport(0, 0, width, height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(45.0, 1.0*width/height, 0.1, 100.0);
 }
-
+*/
+/*
 int main(int argc, char* argv[]) {
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
@@ -247,5 +249,30 @@ int main(int argc, char* argv[]) {
   glutIdleFunc(ApolloniaRun);
   glutMainLoop();
 
+  return 0;
+}
+*/
+
+int main() {
+  if (!glfwInit()) {
+    return -1;
+  }
+
+  window = glfwCreateWindow(win_width, win_height, "apollonia", nullptr, nullptr);
+  if (window == nullptr) {
+    glfwTerminate();
+    return -2;
+  }
+  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+  glfwMakeContextCurrent(window);
+
+  TestStack();
+  glfwSetKeyCallback(window, Keyboard);
+  while (!glfwWindowShouldClose(window)) {
+    ApolloniaRun();
+    glfwPollEvents();
+  }
+
+  glfwTerminate();
   return 0;
 }

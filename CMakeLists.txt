@@ -10,12 +10,17 @@ endif (APPLE)
 include_directories(src)
 add_subdirectory(src)
 
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+add_subdirectory(glfw)
+
 find_package(OpenGL REQUIRED)
-find_package(GLUT REQUIRED)
+
 add_executable(apollonia main.cc)
 target_link_libraries(
     apollonia
     apollonialib
-    ${OPENGL_LIBRARIES}
-    ${GLUT_LIBRARIES}
+    glfw
+    ${OPENGL_gl_LIBRARY}
 )

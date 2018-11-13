@@ -2,17 +2,6 @@
 #include "body.h"
 #include "world.h"
 #include <algorithm>
-/*
-#ifdef __APPLE__
-# include <GLUT/glut.h>
-#elif __linux__
-# include <GL/glut.h>
-#elif _WIN32
-# include <gl/glut.h>
-#else
-# error unsupported platform! run on mac os/linux/windows.
-#endif
-*/
 
 namespace apollonia {
 
