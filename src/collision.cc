@@ -2,15 +2,24 @@
 #include "body.h"
 #include "world.h"
 #include <algorithm>
-#include <GL/glut.h>
-#include <GL/glu.h>
+/*
+#ifdef __APPLE__
+# include <GLUT/glut.h>
+#elif __linux__
+# include <GL/glut.h>
+#elif _WIN32
+# include <gl/glut.h>
+#else
+# error unsupported platform! run on mac os/linux/windows.
+#endif
+*/
 
 namespace apollonia {
 
 using std::abs;
 
 static size_t FindIncidentEdge(const Vec2& normal, const PolygonBody& body) {
-  size_t idx;  
+  size_t idx;
   auto min_dot = kInf;
   for (size_t i = 0; i < body.Count(); ++i) {
     auto edge_normal = body.EdgeAt(i).Normal();
@@ -132,13 +141,14 @@ void Arbiter::PreStep(Float dt) {
     contact.mass_normal = 1 / kn;
     contact.mass_tangent = 1 / kt;
     contact.bias = -kBiasFactor / dt * std::min(0.0f, contact.separation + kAllowedPenetration);
-
+    /*
     glPointSize(4.0f);
     glColor3f(1.0f, 0.0f, 0.0f);
     glBegin(GL_POINTS);
     glVertex2f(contact.position.x, contact.position.y);
     glEnd();
     glPointSize(1.0f);
+    */
   }
 }
 
@@ -151,12 +161,12 @@ void Arbiter::ApplyImpulse() {
     auto vn = Dot(dv, normal_);
     auto dpn = (-vn + contact.bias) * contact.mass_normal;
     dpn = std::max(contact.pn + dpn, 0.0f) - contact.pn;
-    
+
     Float friction = sqrt(a_.friction() * b_.friction());
     auto vt = Dot(dv, tangent);
     auto dpt = -vt * contact.mass_tangent;
     dpt = std::max(-friction * contact.pn, std::min(friction * contact.pn, contact.pt + dpt)) - contact.pt;
-    
+
     auto p = dpn * normal_ + dpt * tangent;
     a_.ApplyImpulse(-p, contact.ra);
     b_.ApplyImpulse(p, contact.rb);

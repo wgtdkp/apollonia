@@ -2,14 +2,24 @@
 #include "collision.h"
 #include "joint.h"
 #include "world.h"
-#include <GL/glut.h>
-#include <GL/glu.h>
 #include <chrono>
+
+#ifdef __APPLE__
+# include <GLUT/glut.h>
+#elif __linux__
+# include <GL/glut.h>
+#elif _WIN32
+# include <gl/glut.h>
+#else
+# error unsupported platform! run on mac os/linux/windows.
+#endif
 
 using namespace apollonia;
 using namespace std::chrono;
 static time_point<high_resolution_clock> last_clock = high_resolution_clock::now();
 static World world({0, -9.8});
+static constexpr int win_width = 800;
+static constexpr int win_height = 800;
 
 static void DrawText(int x, int y, const char* format, ...) {
   glMatrixMode(GL_PROJECTION);
@@ -24,7 +34,7 @@ static void DrawText(int x, int y, const char* format, ...) {
 
   glColor3f(0.9f, 0.9f, 0.9f);
   glRasterPos2i(x, y);
-  
+
   char buffer[256];
   va_list args;
   va_start(args, format);
@@ -73,6 +83,9 @@ static void DrawJoint(const RevoluteJoint& joint) {
 }
 
 static void ApolloniaRun() {
+  // If macos-version > 10.13
+  static int _ = (glutReshapeWindow(win_width, win_height), 0);
+  (void)_;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -81,7 +94,7 @@ static void ApolloniaRun() {
   auto now = high_resolution_clock::now();
   auto dt = duration_cast<duration<double>>(now - last_clock).count();
   last_clock = now;
-  
+
   int h = glutGet(GLUT_WINDOW_HEIGHT);
   DrawText(5, h - 20, "dt: %.2f ms", dt * 1000);
 
@@ -96,6 +109,8 @@ static void ApolloniaRun() {
   }
 
   glutSwapBuffers();
+  // If macos-version > 10.13
+  glutPostRedisplay();
 }
 
 static PolygonBody* CreateFencing() {
@@ -149,12 +164,12 @@ static void TestPyramid() {
 static void TestJoint() {
   auto ground = World::NewBox(kInf, 100, 20, {0, -10});
   world.Add(ground);
-  
+
   auto box1 = World::NewBox(500, 1, 1, {13.5, 11});
   world.Add(box1);
   auto joint1 = World::NewRevoluteJoint(*ground, *box1, {4.5, 11});
   world.Add(joint1);
-  
+
   for (size_t i = 0; i < 5; ++i) {
     auto box2 = World::NewBox(100, 1, 1, {3.5f-i, 2});
     world.Add(box2);
@@ -204,7 +219,6 @@ static void Keyboard(unsigned char key, int x, int y) {
     TestChain();
     break;
   }
-  
 }
 
 static void Mouse(int button, int state, int x, int y) {
@@ -215,13 +229,13 @@ static void Reshape(int width, int height) {
   glViewport(0, 0, width, height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(45.0, width/(float)height, 0.1, 100.0);
+  gluPerspective(45.0, 1.0*width/height, 0.1, 100.0);
 }
 
 int main(int argc, char* argv[]) {
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-  glutInitWindowSize(800, 800);
+  glutInitWindowSize(win_width, win_height - 1);
   glutCreateWindow("Apollonia");
 
   TestJoint();

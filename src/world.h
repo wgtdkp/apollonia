@@ -16,7 +16,7 @@ class World {
   using BodyList = std::vector<Body*>;
   using JointList = std::vector<Joint*>;
   using ArbiterList = std::map<ArbiterKey, Arbiter*>;
-  
+
   World(const Vec2& gravity) : gravity_(gravity) {}
   ~World();
   static PolygonBody* NewBox(Float mass, Float width, Float height,
@@ -26,7 +26,7 @@ class World {
   static Arbiter* NewArbiter(Body& a, Body& b, const Vec2& normal,
       const Arbiter::ContactList& contacts=Arbiter::ContactList());
   static RevoluteJoint* NewRevoluteJoint(Body& a, Body& b, const Vec2& anchor);
-  
+
   void Add(Body* body) { bodies_.push_back(body); }
   void Add(Joint* joint) { joints_.push_back(joint); }
   const Vec2& gravity() const { return gravity_; }
@@ -39,7 +39,7 @@ class World {
  private:
   void BroadPhase();
   DISABLE_COPY_AND_ASSIGN(World)
-  
+
   Vec2 gravity_ {0, 0};
   size_t iterations_ {10};
   BodyList bodies_;

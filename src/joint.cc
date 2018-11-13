@@ -20,7 +20,7 @@ void RevoluteJoint::PreStep(Float dt) {
            b.inv_inertia() * Mat22(rb_.y*rb_.y, -rb_.y*rb_.x, -rb_.y*rb_.x, rb_.x*rb_.x);
   mass_ = k.Inv();
   bias_ = -kBiasFactor / dt * (b.LocalToWorld(b.centroid()) + rb_ - a.LocalToWorld(a.centroid()) - ra_);
-  
+
   a.ApplyImpulse(-p_, ra_);
   b.ApplyImpulse(p_, rb_);
 }
