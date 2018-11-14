@@ -5,7 +5,9 @@
 
 #include <GLFW/glfw3.h>
 #include <chrono>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 using namespace apollonia;
@@ -14,37 +16,6 @@ static World world({0, -9.8});
 static constexpr int win_width = 800;
 static constexpr int win_height = 800;
 static GLFWwindow* window = nullptr;
-
-/*
-static void DrawText(int x, int y, const char* format, ...) {
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix();
-  glLoadIdentity();
-  int width, height;
-  glfwGetWindowSize(window, &width, &height);
-
-  glOrtho(0, width, height, 0, -1, 1);
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix();
-  glLoadIdentity();
-
-  glColor3f(0.9f, 0.9f, 0.9f);
-  glRasterPos2i(x, y);
-
-  char buffer[256];
-  va_list args;
-  va_start(args, format);
-  int len = vsprintf(buffer, format, args);
-  va_end(args);
-  for (int i = 0; i < len; ++i) {
-    glfw(GLUT_BITMAP_9_BY_15, buffer[i]);
-  }
-
-  glPopMatrix();
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-}
-*/
 
 static void DrawBody(const PolygonBody& body) {
   if (body.mass() == kInf) {
@@ -79,26 +50,36 @@ static void DrawJoint(const RevoluteJoint& joint) {
   glEnd();
 }
 
-static void ApolloniaRun() {
+static auto DiffTime() {
   using namespace std::chrono;
+  using Seconds = std::chrono::duration<double>;
   static auto last_clock = high_resolution_clock::now();
-  glViewport(0, -win_height/4, win_width, win_height);
+  auto now = high_resolution_clock::now();
+  auto dt = duration_cast<Seconds>(now - last_clock);
+  last_clock = now;
+  return dt;
+}
+
+static void UpdateTitle(double dt) {
+  int fps = round(1.0 / dt);
+  std::stringstream ss;
+  ss << "Apollonia - fps: " << fps;
+  glfwSetWindowTitle(window, ss.str().c_str());
+}
+
+static void ApolloniaRun() {
+  glViewport(0, 0, win_width, win_height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(-20, 20, -20, 20, -1, 1);
+  glOrtho(-12, 12, -12, 12, -1, 1);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  //glTranslatef(0.0f, -8.0f, -25.0f);
+  glTranslatef(0.0f, -8.0f, 0.0f);
 
-  auto now = high_resolution_clock::now();
-  auto dt = duration_cast<duration<double>>(now - last_clock).count();
-  last_clock = now;
-
-  auto title = std::string("apollonia - fps:") + std::to_string((int) (dt * 10000) / 10.0);
-  glfwSetWindowTitle(window, title.c_str());
-  std::cout << "dt: " << dt << std::endl;
+  auto dt = DiffTime().count();
+  UpdateTitle(dt);
   world.Step(dt);
 
   glClear(GL_COLOR_BUFFER_BIT);
@@ -221,35 +202,12 @@ static void Keyboard(GLFWwindow* window,
   }
 }
 
-static void Mouse(int button, int state, int x, int y) {
-
-}
-
 /*
 static void Reshape(int width, int height) {
   glViewport(0, 0, width, height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(45.0, 1.0*width/height, 0.1, 100.0);
-}
-*/
-/*
-int main(int argc, char* argv[]) {
-  glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-  glutInitWindowSize(win_width, win_height - 1);
-  glutCreateWindow("Apollonia");
-
-  TestJoint();
-
-  glutReshapeFunc(Reshape);
-  glutDisplayFunc(ApolloniaRun);
-  glutKeyboardFunc(Keyboard);
-  glutMouseFunc(Mouse);
-  glutIdleFunc(ApolloniaRun);
-  glutMainLoop();
-
-  return 0;
 }
 */
 
