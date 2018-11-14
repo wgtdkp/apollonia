@@ -4,6 +4,7 @@
 #include "world.h"
 
 #include <GLFW/glfw3.h>
+#include <atomic>
 #include <chrono>
 #include <iomanip>
 #include <iostream>
