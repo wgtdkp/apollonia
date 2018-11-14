@@ -62,7 +62,7 @@ class Body {
   Body(Float mass) { set_mass(mass); }
   virtual ~Body() {}
   DISABLE_COPY_AND_ASSIGN(Body)
-  
+
   // Centroid is determined by shape of the body.
   void set_centroid(const Vec2& centroid) { centroid_ = centroid; }
 
@@ -88,7 +88,7 @@ class PolygonBody : public Body {
   using VertexList = std::vector<Vec2>;
 
   size_t Count() const { return vertices_.size(); }
-  
+
   // Get local vertices with rotation
   Vec2 operator[](size_t idx) const {
     return rotation() * (vertices_[idx] - centroid()) + centroid();

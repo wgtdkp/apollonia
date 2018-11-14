@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <map>
+#include <mutex>
 
 namespace apollonia {
 
@@ -35,10 +36,15 @@ class World {
 
   void Step(Float dt);
   void Clear();
+  void Lock() { mutex_.lock(); }
+  void Unlock() { mutex_.unlock(); }
 
  private:
+  // TODO(wgtdkp):
   void BroadPhase();
   DISABLE_COPY_AND_ASSIGN(World)
+
+  std::mutex mutex_;
 
   Vec2 gravity_ {0, 0};
   size_t iterations_ {10};

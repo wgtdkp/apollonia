@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <thread>
 
 using namespace apollonia;
 
@@ -60,14 +61,16 @@ static auto DiffTime() {
   return dt;
 }
 
+/*
 static void UpdateTitle(double dt) {
   int fps = round(1.0 / dt);
   std::stringstream ss;
   ss << "Apollonia - fps: " << fps;
   glfwSetWindowTitle(window, ss.str().c_str());
 }
+*/
 
-static void ApolloniaRun() {
+static void Display() {
   glViewport(0, 0, win_width, win_height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -78,11 +81,8 @@ static void ApolloniaRun() {
 
   glTranslatef(0.0f, -8.0f, 0.0f);
 
-  auto dt = DiffTime().count();
-  UpdateTitle(dt);
-  world.Step(dt);
-
   glClear(GL_COLOR_BUFFER_BIT);
+  world.Lock();
   for (auto body : world.bodies()) {
     // TODO(wgtdkp):
     DrawBody(dynamic_cast<PolygonBody&>(*body));
@@ -90,6 +90,7 @@ static void ApolloniaRun() {
   for (auto joint : world.joints()) {
     DrawJoint(dynamic_cast<RevoluteJoint&>(*joint));
   }
+  world.Unlock();
   glfwSwapBuffers(window);
 }
 
@@ -103,10 +104,12 @@ static PolygonBody* CreateFencing() {
 }
 
 static void TestPolygon() {
+  world.Lock();
   CreateFencing();
   world.Add(World::NewPolygonBody(200, {{-1, 0}, {1, 0}, {0, 1}}, {-1, 0}));
   world.Add(World::NewPolygonBody(200, {{-1, 0}, {1, 0}, {0, 1}}, {1, 0}));
   world.Add(World::NewBox(200, 3, 6, {0, 8}));
+  world.Unlock();
 }
 
 Float Random(Float low, Float high) {
@@ -115,6 +118,7 @@ Float Random(Float low, Float high) {
 
 // A vertical stack
 static void TestStack() {
+  world.Lock();
   CreateFencing();
   for (int i = 0; i < 10; ++i) {
     Float x = Random(-0.1f, 0.1f);
@@ -122,9 +126,11 @@ static void TestStack() {
     body->set_friction(0.2);
     world.Add(body);
   }
+  world.Unlock();
 }
 
 static void TestPyramid() {
+  world.Lock();
   CreateFencing();
   Vec2 x(-6.0f, 0.75f);
   Vec2 y;
@@ -139,9 +145,11 @@ static void TestPyramid() {
     }
     x += Vec2(0.5625f, 1.5f);
   }
+  world.Unlock();
 }
 
 static void TestJoint() {
+  world.Lock();
   auto ground = World::NewBox(kInf, 100, 20, {0, -10});
   world.Add(ground);
 
@@ -156,9 +164,11 @@ static void TestJoint() {
     auto joint2 = World::NewRevoluteJoint(*ground, *box2, {3.5f-i, 11});
     world.Add(joint2);
   }
+  world.Unlock();
 }
 
 static void TestChain() {
+  world.Lock();
   auto ground = World::NewBox(kInf, 100, 20, {0, -10});
   ground->set_friction(0.4);
   world.Add(ground);
@@ -174,31 +184,20 @@ static void TestChain() {
     world.Add(joint);
     last = box;
   }
+  world.Unlock();
 }
 
 static void Keyboard(GLFWwindow* window,
     int key, int scancode, int action, int mods) {
+  world.Lock();
+  world.Clear();
+  world.Unlock();
   switch (key) {
-  case '1':
-    world.Clear();
-    TestPolygon();
-    break;
-  case '2':
-    world.Clear();
-    TestStack();
-    break;
-  case '3':
-    world.Clear();
-    TestPyramid();
-    break;
-  case '4':
-    world.Clear();
-    TestJoint();
-    break;
-  case '5':
-    world.Clear();
-    TestChain();
-    break;
+  case '1': TestPolygon(); break;
+  case '2': TestStack(); break;
+  case '3': TestPyramid(); break;
+  case '4': TestJoint(); break;
+  case '5': TestChain(); break;
   }
 }
 
@@ -210,6 +209,21 @@ static void Reshape(int width, int height) {
   gluPerspective(45.0, 1.0*width/height, 0.1, 100.0);
 }
 */
+
+static std::atomic<bool> should_stop{false};
+static void ApolloniaRun() {
+  using namespace std::chrono_literals;
+  TestPyramid();
+  while (!should_stop) {
+    // We give up some time for drawing
+    std::this_thread::sleep_for(10ms);
+    auto dt = DiffTime().count();
+
+    world.Lock();
+    world.Step(dt);
+    world.Unlock();
+  }
+}
 
 int main() {
   if (!glfwInit()) {
@@ -224,13 +238,15 @@ int main() {
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
   glfwMakeContextCurrent(window);
 
-  TestStack();
   glfwSetKeyCallback(window, Keyboard);
+
+  std::thread apollo_thread(ApolloniaRun);
   while (!glfwWindowShouldClose(window)) {
-    ApolloniaRun();
+    Display();
     glfwPollEvents();
   }
-
   glfwTerminate();
+  should_stop = true;
+  apollo_thread.join();
   return 0;
 }
