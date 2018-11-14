@@ -13,15 +13,15 @@ class Joint {
   friend class World;
   // Prev step before iteration, reduce calculation
   virtual void PreStep(Float dt) = 0;
-  
+
   // Apply impluse to maintain constrains
   virtual void ApplyImpulse() = 0;
-  
+
   Body& a() { return a_; }
   const Body& a() const { return a_; }
   Body& b() { return b_; }
   const Body& b() const { return b_; }
-  
+
  protected:
   Joint(Body& a, Body& b) : a_(a), b_(b) {}
   virtual ~Joint() {}

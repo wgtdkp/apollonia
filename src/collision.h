@@ -18,7 +18,7 @@ struct Contact {
   Float separation;
   Float pn {0};
   Float pt {0};
-  Float bias {0};  
+  Float bias {0};
   Float mass_normal;
   Float mass_tangent;
 
@@ -43,7 +43,7 @@ class Arbiter {
   friend class ArbiterKey;
   static const size_t kMaxContacts = 2;
   using ContactList = std::vector<Contact>;
-  
+
   bool operator==(const Arbiter& other) const;
   void PreStep(Float dt);
   void ApplyImpulse();
