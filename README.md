@@ -15,7 +15,7 @@ A simplicity-first 2D physics engine.
 Try on ubuntu, Mac OS and windows:
 
 ```bash
-$ git clone https://github.com/wgtdkp/apollonia
+$ git clone --recurse-submodules https://github.com/wgtdkp/apollonia
 $ cd apollonia && mkdir build && cd build
 $ cmake ..
 ```
