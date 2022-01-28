@@ -8,7 +8,7 @@ A simplicity-first 2D physics engine.
 
 ## Demo
 
-[Stacking, Pyramid, Pendulum, Chain](./demo/demo.html)
+[Stacking, Pyramid, Pendulum, Chain](./demo/apollonia-demo.mp4)
 
 ## Build
 
@@ -16,16 +16,11 @@ Try on ubuntu, Mac OS and windows:
 
 ```bash
 $ git clone --recurse-submodules https://github.com/wgtdkp/apollonia
-$ cd apollonia && mkdir build && cd build
-$ cmake ..
+$ cd apollonia && cmake -S . -B build
+$ cmake --build
 ```
 
-For windows, VC project files will be generated under `build/`. For Linux(ubuntu) and Mac OS, we can build apollonia by:
-
-```bash
-$ make
-$ ./apollonia
-```
+For windows, VC project files will be generated under `build/`. For Linux(ubuntu) and Mac OS, the `apollonia` binary will be generated under the `build/` directory.
 
 ## Reference
 
